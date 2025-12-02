@@ -187,6 +187,9 @@ class CollegeHomeTab extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 24),
+          Text('Department Inspection Verification', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 12),
           ElevatedButton.icon(
             onPressed: () {
               showDepartmentSelectionDialog();
@@ -194,7 +197,10 @@ class CollegeHomeTab extends StatelessWidget {
             icon: const Icon(Icons.check_circle_outline),
             label: const Text('Perform Inspection Verification'),
             style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(50), // Make button full width
+              minimumSize: const Size.fromHeight(50),
+              backgroundColor: const Color(0xFF2563EB),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ],

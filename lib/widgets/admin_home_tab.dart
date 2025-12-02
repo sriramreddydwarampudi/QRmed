@@ -171,10 +171,10 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 4,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 1.0,
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.1,
             children: [
               DashboardTile(
                 count: collegeCount.toString(),
@@ -198,7 +198,7 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
           ),
           const SizedBox(height: 24),
           Text('College Inspection Verification', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           collegeProvider.colleges.isEmpty
               ? const Text('No colleges available for inspection.')
               : Column(
@@ -278,7 +278,10 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
                       icon: const Icon(Icons.check_circle_outline),
                       label: const Text('Perform Inspection Verification'),
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(50), // Make button full width
+                        minimumSize: const Size.fromHeight(50),
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ],

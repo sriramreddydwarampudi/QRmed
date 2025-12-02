@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' as io; // Conditional import for dart:io or dart:html
 import '../models/equipment.dart'; // Changed from product.dart
 import '../providers/equipment_provider.dart'; // Changed from product_provider.dart
+import '../providers/employee_provider.dart'; // Add employee provider
 import '../models/college.dart'; // Added import
 import '../providers/college_provider.dart'; // Added import
 import '../data/requirements_data.dart'; // Added import // Changed from product_provider.dart
@@ -230,6 +231,21 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
   }
 
   Future<void> _showAddEquipmentDialog() async { // Changed from _showAddProductDialog
+    // Check if employees exist (handle both null and empty)
+    final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
+    final employees = employeeProvider.employees.where((e) => e.collegeId == widget.collegeName).toList();
+    
+    if (employees == null || employees.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ Create employees first! Equipment must be assigned to employees.'),
+          duration: Duration(seconds: 4),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     _clearForm();
     await showDialog(
       context: context,

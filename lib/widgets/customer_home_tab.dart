@@ -90,10 +90,10 @@ class CustomerHomeTab extends StatelessWidget {
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 4,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 1.0,
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.1,
             children: [
               DashboardTile(
                 count: collegeEquipments.toString(),
@@ -121,6 +121,9 @@ class CustomerHomeTab extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 24),
+          Text('Raise Support Ticket', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 12),
           ElevatedButton.icon(
             onPressed: () async {
               final newTicket = await Navigator.of(context).push<Ticket>(
@@ -148,7 +151,10 @@ class CustomerHomeTab extends StatelessWidget {
             icon: const Icon(Icons.confirmation_number),
             label: const Text('Raise a Ticket'),
             style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(50), // Make button full width
+              minimumSize: const Size.fromHeight(50),
+              backgroundColor: const Color(0xFF2563EB),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ],

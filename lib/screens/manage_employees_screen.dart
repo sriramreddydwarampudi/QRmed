@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/employee.dart';
 import '../providers/employee_provider.dart';
+import '../providers/department_provider.dart'; // Add department provider
 import 'add_edit_employee_screen.dart'; // Import the new screen
 
 class ManageEmployeesScreen extends StatefulWidget {
@@ -143,6 +144,21 @@ class _ManageEmployeesScreenState extends State<ManageEmployeesScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          // Check if departments exist (handle both null and empty)
+          final departmentProvider = Provider.of<DepartmentProvider>(context, listen: false);
+          final departments = departmentProvider.getDepartmentsForCollege(widget.collegeId);
+          
+          if (departments == null || departments.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('❌ Create departments first! Employees must be assigned to departments.'),
+                duration: Duration(seconds: 4),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          }
+
           final newEmployee = await Navigator.of(context).push<Employee>(
             MaterialPageRoute(
               builder: (context) => AddEditEmployeeScreen(

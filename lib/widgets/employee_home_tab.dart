@@ -41,10 +41,10 @@ class _EmployeeHomeTabState extends State<EmployeeHomeTab> {
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 3, // Changed to 3 for better spacing
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 1.2, // Adjusted aspect ratio
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.1,
             children: [
               DashboardTile(
                 count: collegeEquipments.length.toString(),
@@ -74,6 +74,8 @@ class _EmployeeHomeTabState extends State<EmployeeHomeTab> {
             ],
           ),
           const SizedBox(height: 24),
+          Text('Raise Support Ticket', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 12),
           ElevatedButton.icon(
             onPressed: () async {
               final newTicket = await Navigator.of(context).push<Ticket>(
@@ -102,6 +104,9 @@ class _EmployeeHomeTabState extends State<EmployeeHomeTab> {
             label: const Text('Raise a Ticket'),
             style: ElevatedButton.styleFrom(
               minimumSize: const Size.fromHeight(50),
+              backgroundColor: const Color(0xFF2563EB),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ],
