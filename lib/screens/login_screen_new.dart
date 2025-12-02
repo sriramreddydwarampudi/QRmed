@@ -218,7 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Login ID',
                     prefixIcon: Icon(Icons.account_circle),
-                    hintText: 'Type ',
+                    hintText: 'Type to search...',
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {

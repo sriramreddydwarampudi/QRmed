@@ -18,6 +18,14 @@ class CustomerProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<Customer?> getCustomerById(String customerId) async {
+    final doc = await _customerCollection.doc(customerId).get();
+    if (doc.exists) {
+      return Customer.fromJson(doc.data() as Map<String, dynamic>);
+    }
+    return null;
+  }
+
   Future<void> addCustomer(Customer customer) async {
     await _customerCollection.doc(customer.id).set(customer.toJson());
     await fetchCustomers();

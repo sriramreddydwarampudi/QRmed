@@ -68,7 +68,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Refresh data only on subsequent visits, not initial load
     if (!_isInitialLoad) {
       _fetchAllLogins();
     }
@@ -105,14 +104,12 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
     await Future.delayed(const Duration(milliseconds: 500));
 
-    // Admin login
     if (email == 'supreme@supreme.com' && password == '1234567890') {
       setState(() => _isLoading = false);
       Navigator.of(context).pushReplacementNamed('/admin');
       return;
     }
 
-    // College login
     final collegeProvider = Provider.of<CollegeProvider>(context, listen: false);
     College? college;
     try {
@@ -122,14 +119,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     if (college != null) {
       setState(() => _isLoading = false);
-      Navigator.of(context).pushReplacementNamed(
-        '/collegeDashboard',
-        arguments: college.id,
-      );
+      Navigator.of(context).pushReplacementNamed('/collegeDashboard', arguments: college.id);
       return;
     }
 
-    // Employee login
     final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
     Employee? employee;
     try {
@@ -138,7 +131,6 @@ class _LoginScreenState extends State<LoginScreen> {
       employee = null;
     }
     if (employee != null) {
-      // Verify employee still exists in Firebase (to catch deleted employees)
       final verifyEmployee = await employeeProvider.getEmployeeById(employee.id);
       if (verifyEmployee == null) {
         setState(() => _isLoading = false);
@@ -148,21 +140,18 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
       setState(() => _isLoading = false);
-      final collegeProvider = Provider.of<CollegeProvider>(context, listen: false);
-      String collegeName = 'College'; // Default name
+      String collegeName = 'College';
       try {
         final college = collegeProvider.colleges.firstWhere((c) => c.id == employee!.collegeId);
         collegeName = college.name;
       } catch (_) {
-        collegeName = 'College'; // College not found, use default
-        debugPrint("Could not find college for employee. Using default name.");
+        collegeName = 'College';
       }
       Navigator.of(context).pushReplacementNamed('/employeeDashboard',
           arguments: {'employeeId': employee.id, 'collegeName': collegeName});
       return;
     }
 
-    // Customer login
     final customerProvider = Provider.of<CustomerProvider>(context, listen: false);
     Customer? customer;
     try {
@@ -171,7 +160,6 @@ class _LoginScreenState extends State<LoginScreen> {
       customer = null;
     }
     if (customer != null) {
-      // Verify customer still exists in Firebase (to catch deleted customers)
       final verifyCustomer = await customerProvider.getCustomerById(customer.id);
       if (verifyCustomer == null) {
         setState(() => _isLoading = false);
@@ -181,14 +169,12 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
       setState(() => _isLoading = false);
-      final collegeProvider = Provider.of<CollegeProvider>(context, listen: false);
-      String collegeName = 'College'; // Default name
+      String collegeName = 'College';
       try {
         final college = collegeProvider.colleges.firstWhere((c) => c.id == customer!.collegeId);
         collegeName = college.name;
       } catch (_) {
-        collegeName = 'College'; // College not found, use default
-        debugPrint("Could not find college for customer. Using default name.");
+        collegeName = 'College';
       }
       Navigator.of(context).pushReplacementNamed('/customerDashboard',
           arguments: {'name': customer.name, 'collegeName': collegeName});
@@ -218,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Login ID',
                     prefixIcon: Icon(Icons.account_circle),
-                    hintText: 'Type ',
+                    hintText: 'Type to search...',
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
