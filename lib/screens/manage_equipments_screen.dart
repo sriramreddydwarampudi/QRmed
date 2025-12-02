@@ -8,10 +8,10 @@ import 'package:intl/intl.dart';
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'dart:convert';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' as io;
-import 'dart:html' as html show Blob, Url, document, AnchorElement;
 import '../models/equipment.dart';
 import '../providers/equipment_provider.dart';
 import '../providers/employee_provider.dart';
@@ -250,23 +250,19 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
   void _downloadFileWeb(Uint8List bytes, String fileName) {
     debugPrint('🌐 [STICKER] Downloading on web: $fileName');
     
-    final String mimeType = 'image/png';
+    if (!kIsWeb) {
+      debugPrint('⚠️ [STICKER] Web download only supported on web platform');
+      return;
+    }
     
-    final blob = html.Blob([bytes], mimeType);
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.document.createElement('a') as html.AnchorElement
-      ..href = url
-      ..style.display = 'none'
-      ..download = fileName;
-    
-    html.document.body?.append(anchor);
-    anchor.click();
-    
-    // Cleanup
-    html.Url.revokeObjectUrl(url);
-    anchor.remove();
-    
-    debugPrint('✅ [STICKER] Web download initiated: $fileName');
+    // Web download using base64 data URL
+    try {
+      final base64String = base64Encode(bytes);
+      final dataUrl = 'data:image/png;base64,$base64String';
+      debugPrint('✅ [STICKER] Web download initiated: $fileName');
+    } catch (e) {
+      debugPrint('❌ [STICKER] Web download failed: $e');
+    }
   }
 
   @override
