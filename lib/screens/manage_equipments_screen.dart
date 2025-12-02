@@ -528,9 +528,18 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
             controller: _departmentController,
             decoration: const InputDecoration(labelText: 'Department'),
           ),
-          TextFormField(
-            controller: _statusController,
-            decoration: const InputDecoration(labelText: 'Status'),
+          DropdownButtonFormField<String>(
+            value: _statusController.text.isNotEmpty ? _statusController.text : null,
+            decoration: const InputDecoration(labelText: 'Status*'),
+            hint: const Text('Select Status'),
+            items: ['Working', 'Not Working', 'Under Maintenance', 'Standby']
+                .map((String status) {
+              return DropdownMenuItem<String>(value: status, child: Text(status));
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() => _statusController.text = newValue ?? '');
+            },
+            validator: (value) => (value == null || value.isEmpty) ? 'Please select a status.' : null,
           ),
           TextFormField(
             controller: _serviceStatusController,

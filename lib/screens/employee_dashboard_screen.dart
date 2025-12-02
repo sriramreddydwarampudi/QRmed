@@ -52,10 +52,10 @@ class EmployeeDashboardScreen extends StatelessWidget {
 
             return TabBarView(
               children: [
-                EmployeeHomeTab(collegeName: collegeName, employeeId: employeeId), // Pass employeeId here
+                EmployeeHomeTab(collegeName: collegeName, employeeId: employeeId),
                 const FindEquipmentWidget(),
-                MyEquipmentsWidget(employeeName: employeeName, collegeName: collegeName),
-                const Center(child: Text('College Equipments Page')), // Placeholder
+                MyEquipmentsWidget(employeeId: employeeId, collegeName: collegeName),
+                const Center(child: Text('College Equipments Page')),
               ],
             );
           },

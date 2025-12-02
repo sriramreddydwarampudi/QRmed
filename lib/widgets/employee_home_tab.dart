@@ -56,7 +56,7 @@ class _EmployeeHomeTabState extends State<EmployeeHomeTab> {
               InkWell(
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => MyEquipmentsScreen(employeeName: widget.employeeId, collegeName: widget.collegeName), // Pass employeeId here
+                    builder: (context) => MyEquipmentsScreen(employeeId: widget.employeeId, collegeName: widget.collegeName),
                   ));
                 },
                 child: DashboardTile(

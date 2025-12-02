@@ -19,4 +19,17 @@ class DepartmentProvider with ChangeNotifier {
     _departments.add(department);
     notifyListeners();
   }
+
+  void deleteDepartment(String departmentId) {
+    _departments.removeWhere((dep) => dep.id == departmentId);
+    notifyListeners();
+  }
+
+  void updateDepartment(Department department) {
+    final index = _departments.indexWhere((dep) => dep.id == department.id);
+    if (index != -1) {
+      _departments[index] = department;
+      notifyListeners();
+    }
+  }
 }

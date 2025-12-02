@@ -71,10 +71,10 @@ class MyApp extends StatelessWidget {
             }
             if (settings.name == '/employeeDashboard') {
               final args = settings.arguments as Map<String, String>? ?? {};
-              final name = args['name'] ?? 'Employee';
+              final employeeId = args['employeeId'] ?? '';
               final collegeName = args['collegeName'] ?? 'College';
               return MaterialPageRoute(
-                builder: (context) => EmployeeDashboardScreen(employeeId: name, collegeName: collegeName),
+                builder: (context) => EmployeeDashboardScreen(employeeId: employeeId, collegeName: collegeName),
               );
             }
             if (settings.name == '/customerDashboard') {

@@ -158,7 +158,7 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
     final notWorkingEquipmentCount = equipmentProvider.equipments
         .where((e) => e.status != 'Working')
         .length;
-
+    
     final departments = _selectedCollege != null
         ? departmentProvider.getDepartmentsForCollege(_selectedCollege!.id)
         : <Department>[];

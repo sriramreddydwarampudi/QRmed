@@ -31,7 +31,9 @@ class CollegeHomeTab extends StatelessWidget {
     final totalEquipments = equipmentProvider.equipments.where((e) => e.collegeId == college.id).length;
     final totalEmployees = employeeProvider.employees.where((e) => e.collegeId == college.id).length;
     final totalCustomers = customerProvider.customers.where((c) => c.collegeId == college.id).length;
-     final totalDepartments = departmentProvider.getDepartmentsForCollege(college.id).length;
+
+    // Calculate departments and not working equipment for this college
+    final totalDepartments = departmentProvider.getDepartmentsForCollege(college.id).length;
     final notWorkingEquipments = equipmentProvider.equipments
         .where((e) => e.collegeId == college.id && e.status != 'Working')
         .length;

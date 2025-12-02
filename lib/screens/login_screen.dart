@@ -103,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
         debugPrint("Could not find college for employee. Using default name.");
       }
       Navigator.of(context).pushReplacementNamed('/employeeDashboard',
-          arguments: {'name': employee.name, 'collegeName': collegeName});
+          arguments: {'employeeId': employee.id, 'collegeName': collegeName});
       return;
     }
 

@@ -4,12 +4,12 @@ import 'package:supreme_institution/models/equipment.dart';
 import 'package:supreme_institution/providers/equipment_provider.dart';
 
 class MyEquipmentsScreen extends StatefulWidget {
-  final String employeeName;
+  final String employeeId;
   final String collegeName;
 
   const MyEquipmentsScreen({
     super.key,
-    required this.employeeName,
+    required this.employeeId,
     required this.collegeName,
   });
 
@@ -22,7 +22,7 @@ class _MyEquipmentsScreenState extends State<MyEquipmentsScreen> {
   Widget build(BuildContext context) {
     final equipmentProvider = Provider.of<EquipmentProvider>(context);
     final allCollegeEquipments = equipmentProvider.equipments.where((e) => e.collegeId == widget.collegeName).toList();
-    final myEquipments = allCollegeEquipments.where((e) => e.assignedEmployeeId == widget.employeeName).toList();
+    final myEquipments = allCollegeEquipments.where((e) => e.assignedEmployeeId == widget.employeeId).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -167,7 +167,7 @@ class _MyEquipmentsScreenState extends State<MyEquipmentsScreen> {
                 ElevatedButton(
                   onPressed: selectedEquipment == null ? null : () async {
                     final equipmentToAssign = selectedEquipment!;
-                    final updatedEquipment = equipmentToAssign.copyWith(assignedEmployeeId: widget.employeeName);
+                    final updatedEquipment = equipmentToAssign.copyWith(assignedEmployeeId: widget.employeeId);
                     
                     await Provider.of<EquipmentProvider>(context, listen: false)
                         .updateEquipment(equipmentToAssign.id, updatedEquipment);
