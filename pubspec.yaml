@@ -57,7 +57,4 @@ flutter_launcher_icons:
   windows: true
   web:
     generate: true
-  image_path: "assets/logo/qrmed_logo.png"
-  image_path_android: "assets/logo/qrmed_logo_android.png"
-  image_path_windows: "assets/logo/qrmed_logo_windows.png"
-  image_path_web: "assets/logo/qrmed_logo_web.png"
+  image_path: "assets/app_icon.png"
