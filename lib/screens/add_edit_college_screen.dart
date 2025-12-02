@@ -175,7 +175,7 @@ class _AddEditCollegeScreenState extends State<AddEditCollegeScreen> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _type,
+                      initialValue: _type,
                       items: const [
                         DropdownMenuItem(value: 'Dental', child: Text('Dental')),
                         DropdownMenuItem(value: 'MBBS', child: Text('MBBS')),
@@ -192,7 +192,7 @@ class _AddEditCollegeScreenState extends State<AddEditCollegeScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _seats,
+                      initialValue: _seats,
                       items: _type == 'Dental'
                           ? const [
                               DropdownMenuItem(value: '40', child: Text('40')),
@@ -232,7 +232,7 @@ class _AddEditCollegeScreenState extends State<AddEditCollegeScreen> {
                 },
               ),
               const SizedBox(height: 12),
-              Text('Auto-generated ID:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Auto-generated ID:', style: TextStyle(fontWeight: FontWeight.bold)),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(8),

@@ -423,7 +423,7 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
 
             newEquipments.add(Equipment(
               id: DateTime.now().millisecondsSinceEpoch.toString() + i.toString(), // Unique ID
-              qrcode: 'temp_qr_${DateTime.now().millisecondsSinceEpoch}_${i}', // Placeholder
+              qrcode: 'temp_qr_${DateTime.now().millisecondsSinceEpoch}_$i', // Placeholder
               name: name,
               type: '', // Optional, set default or parse if available
               group: '', // Optional
@@ -481,7 +481,7 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
         mainAxisSize: MainAxisSize.min,
         children: [
           DropdownButtonFormField<String>(
-            value: _selectedEquipment,
+            initialValue: _selectedEquipment,
             decoration: const InputDecoration(labelText: 'Equipment Name*'),
             hint: const Text('Select Equipment'),
             items: _equipmentNames.map((String equipmentName) {
@@ -529,7 +529,7 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
             decoration: const InputDecoration(labelText: 'Department'),
           ),
           DropdownButtonFormField<String>(
-            value: _statusController.text.isNotEmpty ? _statusController.text : null,
+            initialValue: _statusController.text.isNotEmpty ? _statusController.text : null,
             decoration: const InputDecoration(labelText: 'Status*'),
             hint: const Text('Select Status'),
             items: ['Working', 'Not Working', 'Under Maintenance', 'Standby']

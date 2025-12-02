@@ -48,7 +48,7 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
               title: const Text('Edit Department',
                   style: TextStyle(color: Colors.blue)),
               content: DropdownButtonFormField<String>(
-                value: newSelectedDepartment,
+                initialValue: newSelectedDepartment,
                 items: departmentNames.map((String deptName) {
                   return DropdownMenuItem<String>(
                     value: deptName,
@@ -146,7 +146,7 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _selectedDepartment,
+                      initialValue: _selectedDepartment,
                       items: departmentNames.map((String department) {
                         return DropdownMenuItem<String>(
                           value: department,

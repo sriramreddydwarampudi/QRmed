@@ -139,7 +139,7 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
           ...items.map((item) => Padding(
                 padding: const EdgeInsets.only(left: 16.0, bottom: 4.0),
                 child: Text('- $item', style: const TextStyle(fontSize: 14)),
-              )).toList(),
+              )),
         ],
       ),
     );
@@ -204,7 +204,7 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
               : Column(
                   children: [
                     DropdownButtonFormField<College>(
-                      value: _selectedCollege,
+                      initialValue: _selectedCollege,
                       decoration: const InputDecoration(
                         labelText: 'Select College',
                         border: OutlineInputBorder(),
@@ -231,7 +231,7 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
                     const SizedBox(height: 16),
                     if (_selectedCollege != null)
                       DropdownButtonFormField<String>(
-                        value: _selectedDepartment,
+                        initialValue: _selectedDepartment,
                         decoration: const InputDecoration(
                           labelText: 'Select Department',
                           border: OutlineInputBorder(),
@@ -246,7 +246,7 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
                               value: department.name,
                               child: Text(department.name),
                             );
-                          }).toList(),
+                          }),
                         ],
                         onChanged: (String? newValue) {
                           setState(() {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:supreme_institution/models/equipment.dart';
 import 'package:supreme_institution/providers/equipment_provider.dart';
 import 'package:supreme_institution/models/ticket.dart';
 import 'package:supreme_institution/providers/ticket_provider.dart';

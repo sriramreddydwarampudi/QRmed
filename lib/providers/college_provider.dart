@@ -31,5 +31,6 @@ class CollegeProvider with ChangeNotifier {
   Future<void> deleteCollege(String id) async {
     await _collegeCollection.doc(id).delete();
     await fetchColleges();
+    notifyListeners();
   }
 }

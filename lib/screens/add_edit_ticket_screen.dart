@@ -86,7 +86,7 @@ class _AddEditTicketScreenState extends State<AddEditTicketScreen> {
               const SizedBox(height: 16),
               if (widget.ticket != null)
                 DropdownButtonFormField<TicketStatus>(
-                  value: _selectedStatus,
+                  initialValue: _selectedStatus,
                   decoration: const InputDecoration(labelText: 'Status'),
                   items: TicketStatus.values.map((TicketStatus status) {
                     return DropdownMenuItem<TicketStatus>(

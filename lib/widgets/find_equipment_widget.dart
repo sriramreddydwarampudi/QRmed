@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supreme_institution/screens/qr_scanner_screen.dart';
+import 'package:supreme_institution/providers/equipment_provider.dart';
 
 class FindEquipmentWidget extends StatefulWidget {
   const FindEquipmentWidget({super.key});
@@ -60,13 +62,54 @@ class _FindEquipmentWidgetState extends State<FindEquipmentWidget> {
     }
   }
 
-  void _viewEquipmentDetails(String equipmentId) {
-    // Placeholder for navigating to or displaying equipment details
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Viewing details for Equipment ID: $equipmentId')),
+  void _viewEquipmentDetails(String equipmentId) async {
+    final equipmentProvider = Provider.of<EquipmentProvider>(context, listen: false);
+    final equipment = await equipmentProvider.getEquipmentById(equipmentId);
+    
+    if (equipment == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Equipment not found.')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(equipment.name),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('ID: ${equipment.id}'),
+              Text('QR Code: ${equipment.qrcode}'),
+              Text('Group: ${equipment.group}'),
+              Text('Manufacturer: ${equipment.manufacturer}'),
+              Text('Type: ${equipment.type}'),
+              Text('Mode: ${equipment.mode}'),
+              Text('Serial No: ${equipment.serialNo}'),
+              Text('Department: ${equipment.department}'),
+              Text('Status: ${equipment.status}'),
+              Text('Service: ${equipment.service}'),
+              Text('Purchased Cost: ${equipment.purchasedCost}'),
+              Text('Has Warranty: ${equipment.hasWarranty}'),
+              if (equipment.warrantyUpto != null)
+                Text('Warranty Upto: ${equipment.warrantyUpto}'),
+              if (equipment.assignedEmployeeId != null)
+                Text('Assigned To: ${equipment.assignedEmployeeId}'),
+              Text('College: ${equipment.collegeId}'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
-    // In a real application, you would navigate to a detailed screen:
-    // Navigator.of(context).push(MaterialPageRoute(builder: (context) => EquipmentDetailScreen(equipmentId: equipmentId)));
   }
 
   @override

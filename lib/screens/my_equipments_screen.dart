@@ -144,7 +144,7 @@ class _MyEquipmentsScreenState extends State<MyEquipmentsScreen> {
                     ? const Text('No unassigned equipment available in your college.')
                     : DropdownButtonFormField<Equipment>(
                         decoration: const InputDecoration(labelText: 'Select Equipment'),
-                        value: selectedEquipment,
+                        initialValue: selectedEquipment,
                         items: unassignedEquipments.map((equipment) {
                           return DropdownMenuItem<Equipment>(
                             value: equipment,

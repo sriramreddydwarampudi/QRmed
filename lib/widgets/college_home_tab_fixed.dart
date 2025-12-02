@@ -38,7 +38,7 @@ class CollegeHomeTab extends StatelessWidget {
         .where((e) => e.collegeId == college.id && e.status != 'Working')
         .length;
 
-    void _showInspectionResultDialog(InspectionResult result) {
+    void showInspectionResultDialog(InspectionResult result) {
       showDialog(
         context: context,
         builder: (BuildContext dialogContext) {
@@ -51,27 +51,27 @@ class CollegeHomeTab extends StatelessWidget {
                   if (result.missingEquipment.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     const Text('Missing Equipment:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...result.missingEquipment.map((item) => Text('- $item')).toList(),
+                    ...result.missingEquipment.map((item) => Text('- $item')),
                   ],
                   if (result.missingStaff.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     const Text('Missing Staff:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...result.missingStaff.map((item) => Text('- $item')).toList(),
+                    ...result.missingStaff.map((item) => Text('- $item')),
                   ],
                   if (result.excessEquipment.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     const Text('Excess Equipment:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...result.excessEquipment.map((item) => Text('- $item')).toList(),
+                    ...result.excessEquipment.map((item) => Text('- $item')),
                   ],
                   if (result.excessStaff.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     const Text('Excess Staff:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...result.excessStaff.map((item) => Text('- $item')).toList(),
+                    ...result.excessStaff.map((item) => Text('- $item')),
                   ],
                   if (result.notes.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     const Text('Notes:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...result.notes.map((item) => Text('- $item')).toList(),
+                    ...result.notes.map((item) => Text('- $item')),
                   ],
                 ],
               ),
@@ -89,7 +89,7 @@ class CollegeHomeTab extends StatelessWidget {
       );
     }
 
-    void _showDepartmentSelectionDialog() {
+    void showDepartmentSelectionDialog() {
       Department? selectedDepartment;
       showDialog(
         context: context,
@@ -99,7 +99,7 @@ class CollegeHomeTab extends StatelessWidget {
               return AlertDialog(
                 title: const Text('Select Department'),
                 content: DropdownButtonFormField<Department>(
-                  value: selectedDepartment,
+                  initialValue: selectedDepartment,
                   decoration: const InputDecoration(labelText: 'Department'),
                   items: departmentProvider.getDepartmentsForCollege(college.id).map((department) {
                     return DropdownMenuItem<Department>(
@@ -133,7 +133,7 @@ class CollegeHomeTab extends StatelessWidget {
                         department: selectedDepartment,
                       );
 
-                      _showInspectionResultDialog(result);
+                      showInspectionResultDialog(result);
                     },
                   ),
                 ],
@@ -191,7 +191,7 @@ class CollegeHomeTab extends StatelessWidget {
           ),
           ElevatedButton.icon(
             onPressed: () {
-              _showDepartmentSelectionDialog();
+              showDepartmentSelectionDialog();
             },
             icon: const Icon(Icons.check_circle_outline),
             label: const Text('Perform Inspection Verification'),

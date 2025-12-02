@@ -239,7 +239,7 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               DropdownButtonFormField<String>(
-                value: _selectedEquipment,
+                initialValue: _selectedEquipment,
                 decoration: const InputDecoration(labelText: 'Equipment Name*'),
                 hint: const Text('Select Equipment'), // Added hint
                 items: _equipmentNames.map((String equipmentName) {
@@ -266,7 +266,7 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
               if (_departmentSuggestions.length > 1)
                 DropdownButtonFormField<String>(
                   decoration: const InputDecoration(labelText: 'Department*'),
-                  value: _departmentController.text.isEmpty ? null : _departmentController.text,
+                  initialValue: _departmentController.text.isEmpty ? null : _departmentController.text,
                   items: _departmentSuggestions.map((String department) {
                     return DropdownMenuItem<String>(
                       value: department,
@@ -295,7 +295,7 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
               if (_groupSuggestions.length > 1)
                 DropdownButtonFormField<String>(
                   decoration: const InputDecoration(labelText: 'Equipment Group'),
-                  value: _groupController.text.isEmpty ? null : _groupController.text,
+                  initialValue: _groupController.text.isEmpty ? null : _groupController.text,
                   items: _groupSuggestions.map((String group) {
                     return DropdownMenuItem<String>(
                       value: group,
@@ -324,7 +324,7 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _equipmentType,
+                initialValue: _equipmentType,
                 decoration: const InputDecoration(labelText: 'Equipment Type'),
                 items: ['Critical', 'Non-Critical'].map((label) => DropdownMenuItem(
                   value: label,
@@ -333,7 +333,7 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                 onChanged: (value) => setState(() => _equipmentType = value!),
               ),
               DropdownButtonFormField<String>(
-                value: _equipmentMode,
+                initialValue: _equipmentMode,
                 decoration: const InputDecoration(labelText: 'Equipment Mode'),
                 items: ['Mercury', 'Electrical', 'Portable', 'Hydrolic'].map((label) => DropdownMenuItem(
                   value: label,
@@ -342,7 +342,7 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                 onChanged: (value) => setState(() => _equipmentMode = value!),
               ),
               DropdownButtonFormField<String>(
-                value: _serviceStatus,
+                initialValue: _serviceStatus,
                 decoration: const InputDecoration(labelText: 'Service Status'),
                 items: ['Active', 'Non-Active'].map((label) => DropdownMenuItem(
                   value: label,

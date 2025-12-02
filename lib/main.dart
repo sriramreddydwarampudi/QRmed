@@ -50,10 +50,50 @@ class MyApp extends StatelessWidget {
       ],
       child: Builder(builder: (context) {
         return MaterialApp(
-          title: 'Supreme Institution',
+          title: 'QRmed',
           theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
             useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF2563EB),
+              brightness: Brightness.light,
+            ),
+            appBarTheme: const AppBarTheme(
+              elevation: 0,
+              backgroundColor: Colors.white,
+              foregroundColor: Color(0xFF1F2937),
+              centerTitle: false,
+              titleTextStyle: TextStyle(
+                color: Color(0xFF1F2937),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: const Color(0xFFF3F4F6),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            ),
           ),
           initialRoute: '/',
           routes: {
@@ -80,9 +120,9 @@ class MyApp extends StatelessWidget {
             if (settings.name == '/customerDashboard') {
               final args = settings.arguments as Map<String, String>? ?? {};
               final name = args['name'] ?? 'Customer';
-              final collegeName = args['collegeName'] ?? 'College';
+              final collegeId = args['collegeName'] ?? 'College';
               return MaterialPageRoute(
-                builder: (context) => CustomerDashboardScreen(customerName: name, collegeName: collegeName),
+                builder: (context) => CustomerDashboardScreen(customerName: name, collegeName: collegeId),
               );
             }
             if (settings.name == '/collegeDashboard') {

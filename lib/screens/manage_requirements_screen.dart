@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:supreme_institution/providers/requirements_provider.dart';
 
 class ManageRequirementsScreen extends StatefulWidget {
-  const ManageRequirementsScreen({Key? key}) : super(key: key);
+  const ManageRequirementsScreen({super.key});
 
   @override
   _ManageRequirementsScreenState createState() =>
@@ -106,7 +106,7 @@ class _ManageRequirementsScreenState extends State<ManageRequirementsScreen> {
                 ),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );

@@ -1,11 +1,11 @@
 {
-    "name": "supreme_institution",
-    "short_name": "supreme_institution",
+    "name": "QRMed - Medical Equipment Management",
+    "short_name": "QRMed",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#2563EB",
+    "theme_color": "#2563EB",
+    "description": "QRMed - Real-time Medical Equipment Management and Tracking System",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

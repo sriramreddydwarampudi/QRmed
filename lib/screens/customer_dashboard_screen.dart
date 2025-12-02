@@ -45,7 +45,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
     if (_associatedCollege == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Loading Associated College Data...')),
-        body: const Center(child: const CircularProgressIndicator()),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
     return DefaultTabController(

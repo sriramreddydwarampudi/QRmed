@@ -31,7 +31,7 @@ class CustomerHomeTab extends StatelessWidget {
     const totalDepartments = '15';
     const notWorkingCount = '8';
 
-    void _showInspectionResultDialog(InspectionResult result) {
+    void showInspectionResultDialog(InspectionResult result) {
       showDialog(
         context: context,
         builder: (BuildContext dialogContext) {
@@ -44,27 +44,27 @@ class CustomerHomeTab extends StatelessWidget {
                   if (result.missingEquipment.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     const Text('Missing Equipment:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...result.missingEquipment.map((item) => Text('- $item')).toList(),
+                    ...result.missingEquipment.map((item) => Text('- $item')),
                   ],
                   if (result.missingStaff.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     const Text('Missing Staff:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...result.missingStaff.map((item) => Text('- $item')).toList(),
+                    ...result.missingStaff.map((item) => Text('- $item')),
                   ],
                   if (result.excessEquipment.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     const Text('Excess Equipment:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...result.excessEquipment.map((item) => Text('- $item')).toList(),
+                    ...result.excessEquipment.map((item) => Text('- $item')),
                   ],
                   if (result.excessStaff.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     const Text('Excess Staff:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...result.excessStaff.map((item) => Text('- $item')).toList(),
+                    ...result.excessStaff.map((item) => Text('- $item')),
                   ],
                   if (result.notes.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     const Text('Notes:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...result.notes.map((item) => Text('- $item')).toList(),
+                    ...result.notes.map((item) => Text('- $item')),
                   ],
                 ],
               ),
@@ -101,7 +101,7 @@ class CustomerHomeTab extends StatelessWidget {
                 icon: Icons.school,
                 color: Colors.blue,
               ),
-              DashboardTile(
+              const DashboardTile(
                 count: totalDepartments,
                 title: 'Total Departments',
                 icon: Icons.business,
@@ -113,7 +113,7 @@ class CustomerHomeTab extends StatelessWidget {
                 icon: Icons.people,
                 color: Colors.green,
               ),
-              DashboardTile(
+              const DashboardTile(
                 count: notWorkingCount,
                 title: 'Equipments Not Working',
                 icon: Icons.build,

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supreme_institution/models/employee.dart';
 import 'package:supreme_institution/providers/employee_provider.dart';
+import 'package:supreme_institution/providers/equipment_provider.dart';
 import 'package:supreme_institution/services/auth_service.dart';
 import 'package:supreme_institution/widgets/find_equipment_widget.dart';
 import 'package:supreme_institution/widgets/my_equipments_widget.dart';
+import 'package:supreme_institution/widgets/college_equipments_widget.dart';
 import 'package:supreme_institution/widgets/employee_home_tab.dart';
 
 class EmployeeDashboardScreen extends StatelessWidget {
@@ -15,6 +17,7 @@ class EmployeeDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
+    final equipmentProvider = Provider.of<EquipmentProvider>(context, listen: false);
 
     return DefaultTabController(
       length: 4,
@@ -50,13 +53,21 @@ class EmployeeDashboardScreen extends StatelessWidget {
             final employee = snapshot.data!;
             final employeeName = employee.name;
 
-            return TabBarView(
-              children: [
-                EmployeeHomeTab(collegeName: collegeName, employeeId: employeeId),
-                const FindEquipmentWidget(),
-                MyEquipmentsWidget(employeeId: employeeId, collegeName: collegeName),
-                const Center(child: Text('College Equipments Page')),
-              ],
+            return FutureBuilder<void>(
+              future: equipmentProvider.fetchEquipments(),
+              builder: (context, equipmentSnapshot) {
+                if (equipmentSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return TabBarView(
+                  children: [
+                    EmployeeHomeTab(collegeName: employee.collegeId, employeeId: employeeId),
+                    const FindEquipmentWidget(),
+                    MyEquipmentsWidget(employeeId: employeeId, collegeName: employee.collegeId),
+                    CollegeEquipmentsWidget(collegeName: employee.collegeId),
+                  ],
+                );
+              },
             );
           },
         ),

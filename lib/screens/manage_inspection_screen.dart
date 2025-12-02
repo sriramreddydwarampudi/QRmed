@@ -7,9 +7,10 @@ import 'package:supreme_institution/models/college.dart';
 import 'package:supreme_institution/models/inspection_result.dart';
 import 'package:supreme_institution/providers/college_provider.dart';
 import 'package:supreme_institution/providers/inspection_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ManageInspectionScreen extends StatefulWidget {
-  const ManageInspectionScreen({Key? key}) : super(key: key);
+  const ManageInspectionScreen({super.key});
 
   @override
   _ManageInspectionScreenState createState() => _ManageInspectionScreenState();
@@ -25,7 +26,7 @@ class _ManageInspectionScreenState extends State<ManageInspectionScreen> {
   void initState() {
     super.initState();
     // Fetch colleges when the screen loads
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<CollegeProvider>(context, listen: false).fetchColleges();
     });
   }
@@ -66,7 +67,7 @@ class _ManageInspectionScreenState extends State<ManageInspectionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DropdownButtonFormField<College>(
-              value: _selectedCollege,
+              initialValue: _selectedCollege,
               decoration: const InputDecoration(labelText: 'Select College'),
               items: collegeProvider.colleges.map((college) {
                 return DropdownMenuItem<College>(
@@ -83,22 +84,23 @@ class _ManageInspectionScreenState extends State<ManageInspectionScreen> {
               },
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<Department>(
-              value: _selectedDepartment,
-              decoration: const InputDecoration(labelText: 'Select Department'),
-              items: departmentProvider.getDepartmentsForCollege(_selectedCollege!.id).map((department) {
-                return DropdownMenuItem<Department>(
-                  value: department,
-                  child: Text(department.name),
-                );
-              }).toList(),
-              onChanged: (department) {
-                setState(() {
-                  _selectedDepartment = department;
-                  _inspectionResult = null;
-                });
-              },
-            ),
+            if (_selectedCollege != null)
+              DropdownButtonFormField<Department>(
+                initialValue: _selectedDepartment,
+                decoration: const InputDecoration(labelText: 'Select Department'),
+                items: departmentProvider.getDepartmentsForCollege(_selectedCollege!.id).map((department) {
+                  return DropdownMenuItem<Department>(
+                    value: department,
+                    child: Text(department.name),
+                  );
+                }).toList(),
+                onChanged: (department) {
+                  setState(() {
+                    _selectedDepartment = department;
+                    _inspectionResult = null;
+                  });
+                },
+              ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -187,8 +189,97 @@ class _ManageInspectionScreenState extends State<ManageInspectionScreen> {
         if (items.isEmpty)
           const Text('None')
         else
-          ...items.map((item) => Text('• $item')).toList(),
+          ...items.map((item) => Text('• $item')),
       ],
+    );
+  }
+
+  Widget _buildReferenceSection(College college) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Reference Standards',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(height: 12),
+        if (college.type.toUpperCase().contains('MBBS'))
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildReferenceLink(
+                'MBBS - 100 Admissions',
+                'https://www.nmc.org.in/wp-content/uploads/2017/10/Minimum-Standard-Requirements-for-100-Admissions-1.pdf',
+              ),
+              const SizedBox(height: 8),
+              _buildReferenceLink(
+                'MBBS - 200 Admissions',
+                'https://www.nmc.org.in/wp-content/uploads/2017/10/STANDARD-FOR-200.pdf',
+              ),
+            ],
+          ),
+        if (college.type.toUpperCase().contains('BDS') || college.type.toUpperCase().contains('MDS'))
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: _buildReferenceLink(
+              'BDS / MDS Standards',
+              'https://dciindia.gov.in/InspetionProfomas.aspx',
+            ),
+          ),
+        if (college.type.toUpperCase().contains('HOSPITAL'))
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 8),
+              _buildReferenceLink(
+                'National Level Hospital Standards',
+                'https://clinicalestablishments.mohfw.gov.in/sites/default/files/2022-06/147.pdf',
+              ),
+              const SizedBox(height: 8),
+              _buildReferenceLink(
+                'State Level Hospital Standards (AP)',
+                'https://www.scribd.com/document/746442335/Andhra-Pradesh-Allopathic-Private-Medical-Care-Establishments-act',
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Widget _buildReferenceLink(String title, String url) {
+    return GestureDetector(
+      onTap: () async {
+        if (await canLaunchUrl(Uri.parse(url))) {
+          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not launch $url')),
+          );
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.blue),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.link, color: Colors.blue, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

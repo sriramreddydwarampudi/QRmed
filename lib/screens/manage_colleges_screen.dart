@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supreme_institution/screens/add_edit_college_screen.dart';
 import '../models/college.dart';
 import '../providers/college_provider.dart';
-import '../services/auth_service.dart';
+import '../widgets/management_list_widget.dart';
 
 class ManageCollegesScreen extends StatefulWidget {
   const ManageCollegesScreen({super.key});
@@ -12,9 +13,6 @@ class ManageCollegesScreen extends StatefulWidget {
 }
 
 class _ManageCollegesScreenState extends State<ManageCollegesScreen> {
-  bool _loading = true;
-  String? _error;
-
   @override
   void initState() {
     super.initState();
@@ -22,147 +20,135 @@ class _ManageCollegesScreenState extends State<ManageCollegesScreen> {
   }
 
   Future<void> _fetchColleges() async {
-    final provider = Provider.of<CollegeProvider>(context, listen: false);
-    try {
-      debugPrint('Fetching colleges from Firestore...');
-      await provider.fetchColleges();
-      debugPrint('Colleges fetched: \\${provider.colleges.length}');
-      setState(() {
-        _loading = false;
-        _error = null;
-      });
-    } catch (e, stack) {
-      debugPrint('Error fetching colleges: \\${e.toString()}');
-      debugPrint(stack.toString());
-      setState(() {
-        _loading = false;
-        _error = e.toString();
-      });
-    }
+    await Provider.of<CollegeProvider>(context, listen: false).fetchColleges();
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
+    final colleges = Provider.of<CollegeProvider>(context).colleges;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manage Colleges'),
+        elevation: 0,
       ),
-      body: Consumer<CollegeProvider>(
-        builder: (context, collegeProvider, _) {
-          if (_loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (_error != null) {
-            return Center(child: Text('Error: $_error'));
-          }
-          final colleges = collegeProvider.colleges;
-          if (colleges.isEmpty) {
-            return const Center(child: Text('No colleges found.'));
-          }
-          return ListView.builder(
-            itemCount: colleges.length,
-            itemBuilder: (context, index) {
-              final college = colleges[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: ListTile(
-                  title: Text(college.name),
-                  subtitle: Text('${college.city} • ${college.type} • Seats: ${college.seats}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.remove_red_eye),
-                        tooltip: 'View',
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('College Details'),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Name: ${college.name}'),
-                                  Text('City: ${college.city}'),
-                                  Text('Type: ${college.type}'),
-                                  Text('Seats: ${college.seats}'),
-                                  Text('ID: ${college.id}'),
-                                  Text('Latitude: ${college.latitude ?? '-'}'),
-                                  Text('Longitude: ${college.longitude ?? '-'}'),
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(ctx).pop(),
-                                  child: const Text('Close'),
-                                ),
+      body: ManagementListWidget(
+        items: colleges
+            .map(
+              (c) => ManagementListItem(
+                id: c.id,
+                title: c.name,
+                subtitle: '${c.city} • ${c.type}',
+                icon: Icons.school_outlined,
+                iconColor: const Color(0xFF8B5CF6),
+                actions: [
+                  ManagementAction(
+                    label: 'View',
+                    icon: Icons.remove_red_eye,
+                    color: const Color(0xFF2563EB),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('College Details'),
+                          content: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _DetailRow('Name', c.name),
+                                _DetailRow('ID', c.id),
+                                _DetailRow('City', c.city),
+                                _DetailRow('Type', c.type),
+                                _DetailRow('Seats', c.seats),
                               ],
                             ),
-                          );
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        tooltip: 'Edit',
-                        onPressed: () async {
-                          final updated = await Navigator.of(context).pushNamed(
-                            '/addEditCollege',
-                            arguments: college,
-                          );
-                          if (updated is College) {
-                            collegeProvider.updateCollege(college.id, updated);
-                            await _fetchColleges();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('College updated successfully.')),
-                            );
-                          }
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        tooltip: 'Delete',
-                        onPressed: () async {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('Delete College'),
-                              content: const Text('Are you sure you want to delete this college?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(ctx).pop(false),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.of(ctx).pop(true),
-                                  child: const Text('Delete'),
-                                ),
-                              ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              child: const Text('Close'),
                             ),
-                          );
-                          if (confirm == true) {
-                            collegeProvider.deleteCollege(college.id);
-                            await _fetchColleges();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('College deleted.')),
-                            );
-                          }
-                        },
-                      ),
-                    ],
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                ),
-              );
-            },
-          );
-        },
+                  ManagementAction(
+                    label: 'Edit',
+                    icon: Icons.edit,
+                    color: const Color(0xFF16A34A),
+                    onPressed: () async {
+                      final updatedCollege =
+                          await Navigator.of(context).push<College>(
+                        MaterialPageRoute(
+                          builder: (context) => AddEditCollegeScreen(
+                            college: c,
+                          ),
+                        ),
+                      );
+                      if (updatedCollege != null) {
+                        await Provider.of<CollegeProvider>(context,
+                                listen: false)
+                            .updateCollege(updatedCollege.id, updatedCollege);
+                        await _fetchColleges();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('College updated successfully.')),
+                        );
+                      }
+                    },
+                  ),
+                  ManagementAction(
+                    label: 'Delete',
+                    icon: Icons.delete,
+                    color: const Color(0xFFDC2626),
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Delete College'),
+                          content: const Text(
+                              'Are you sure you want to delete this college?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(true),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirm == true) {
+                        await Provider.of<CollegeProvider>(context,
+                                listen: false)
+                            .deleteCollege(c.id);
+                        await _fetchColleges();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('College deleted.')),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            )
+            .toList(),
+        emptyMessage: 'No colleges found',
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final newCollege = await Navigator.of(context).pushNamed('/addEditCollege');
-          if (newCollege is College) {
-            final provider = Provider.of<CollegeProvider>(context, listen: false);
-            await provider.addCollege(newCollege);
+          final newCollege = await Navigator.of(context).push<College>(
+            MaterialPageRoute(
+              builder: (context) => const AddEditCollegeScreen(),
+            ),
+          );
+          if (newCollege != null) {
+            await Provider.of<CollegeProvider>(context, listen: false)
+                .addCollege(newCollege);
             await _fetchColleges();
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('College added successfully.')),
@@ -171,6 +157,42 @@ class _ManageCollegesScreenState extends State<ManageCollegesScreen> {
         },
         tooltip: 'Add College',
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _DetailRow(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF6B7280),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1F2937),
+            ),
+          ),
+        ],
       ),
     );
   }

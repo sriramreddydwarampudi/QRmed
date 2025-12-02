@@ -12,7 +12,7 @@ import 'package:supreme_institution/widgets/college_home_tab.dart';
 class CollegeDashboardScreen extends StatefulWidget {
   final College college;
 
-  CollegeDashboardScreen({super.key, required this.college});
+  const CollegeDashboardScreen({super.key, required this.college});
 
   @override
   State<CollegeDashboardScreen> createState() => _CollegeDashboardScreenState();

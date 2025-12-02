@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.example.supreme_institution"
-    compileSdk = 35
+    compileSdk = 36
 
     // FIX: Use stable NDK (not broken one)
     ndkVersion = "27.0.12077973"
@@ -26,7 +26,7 @@ android {
     defaultConfig {
         applicationId = "com.example.supreme_institution"
         minSdk = flutter.minSdkVersion
-        targetSdk = 35
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

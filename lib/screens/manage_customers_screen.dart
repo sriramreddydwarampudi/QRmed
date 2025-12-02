@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:supreme_institution/screens/add_edit_customer_screen.dart';
 import '../models/customer.dart';
 import '../providers/customer_provider.dart';
+import '../widgets/management_list_widget.dart';
 
 class ManageCustomersScreen extends StatefulWidget {
   final String collegeName;
@@ -47,6 +48,8 @@ class _ManageCustomersScreenState extends State<ManageCustomersScreen> {
       name: _nameController.text.trim(),
       password: _passwordController.text.trim(),
       collegeId: widget.collegeName,
+      email: _emailController.text.trim(),
+      phone: _phoneController.text.trim(),
     );
     await Provider.of<CustomerProvider>(context, listen: false).addCustomer(customer);
     _nameController.clear();
@@ -61,106 +64,117 @@ class _ManageCustomersScreenState extends State<ManageCustomersScreen> {
     final customers = Provider.of<CustomerProvider>(context).customers
         .where((c) => c.collegeId == widget.collegeName).toList();
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage Customers')),
-      body: customers.isEmpty
-          ? const Center(child: Text('No customers found.'))
-          : ListView.builder(
-              itemCount: customers.length,
-              itemBuilder: (context, idx) {
-                final c = customers[idx];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ListTile(
-                    title: Text(c.name),
-                    subtitle: Text('ID: ${c.id}\nPhone: ${c.phone}'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove_red_eye),
-                          tooltip: 'View',
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text('Customer Details'),
-                                content: SingleChildScrollView(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Name: ${c.name}'),
-                                      Text('ID: ${c.id}'),
-                                      Text('Phone: ${c.phone}'),
-                                      Text('Email: ${c.email}'),
-                                      Text('College: ${c.collegeId}'),
-                                    ],
-                                  ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(ctx).pop(),
-                                    child: const Text('Close'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+      appBar: AppBar(
+        title: const Text('Manage Customers'),
+        elevation: 0,
+      ),
+      body: ManagementListWidget(
+        items: customers
+            .map(
+              (c) => ManagementListItem(
+                id: c.id,
+                title: c.name,
+                subtitle: '${c.phone} • ${c.email}',
+                icon: Icons.person_outline,
+                iconColor: const Color(0xFF059669),
+                actions: [
+                  ManagementAction(
+                    label: 'View',
+                    icon: Icons.remove_red_eye,
+                    color: const Color(0xFF2563EB),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Customer Details'),
+                          content: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _DetailRow('Name', c.name),
+                                _DetailRow('ID', c.id),
+                                _DetailRow('Phone', c.phone ?? '-'),
+                                _DetailRow('Email', c.email ?? '-'),
+                                _DetailRow('College', c.collegeId),
+                              ],
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              child: const Text('Close'),
+                            ),
+                          ],
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          tooltip: 'Edit',
-                          onPressed: () async {
-                            final updatedCustomer = await Navigator.of(context).push<Customer>(
-                              MaterialPageRoute(
-                                builder: (context) => AddEditCustomerScreen(
-                                  customer: c,
-                                  collegeId: widget.collegeName,
-                                ),
-                              ),
-                            );
-                            if (updatedCustomer != null) {
-                              await Provider.of<CustomerProvider>(context, listen: false)
-                                  .updateCustomer(updatedCustomer.id, updatedCustomer);
-                              await _fetchCustomers();
-                            }
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          tooltip: 'Delete',
-                          onPressed: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text('Delete Customer'),
-                                content: const Text('Are you sure you want to delete this customer?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(ctx).pop(false),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.of(ctx).pop(true),
-                                    child: const Text('Delete'),
-                                  ),
-                                ],
-                              ),
-                            );
-                            if (confirm == true) {
-                              await Provider.of<CustomerProvider>(context, listen: false)
-                                  .deleteCustomer(c.id);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Customer deleted.')),
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
+                  ManagementAction(
+                    label: 'Edit',
+                    icon: Icons.edit,
+                    color: const Color(0xFF16A34A),
+                    onPressed: () async {
+                      final updatedCustomer =
+                          await Navigator.of(context).push<Customer>(
+                        MaterialPageRoute(
+                          builder: (context) => AddEditCustomerScreen(
+                            customer: c,
+                            collegeId: widget.collegeName,
+                          ),
+                        ),
+                      );
+                      if (updatedCustomer != null) {
+                        await Provider.of<CustomerProvider>(context,
+                                listen: false)
+                            .updateCustomer(updatedCustomer.id, updatedCustomer);
+                        await _fetchCustomers();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Customer updated successfully.')),
+                        );
+                      }
+                    },
+                  ),
+                  ManagementAction(
+                    label: 'Delete',
+                    icon: Icons.delete,
+                    color: const Color(0xFFDC2626),
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Delete Customer'),
+                          content: const Text(
+                              'Are you sure you want to delete this customer?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(true),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirm == true) {
+                        await Provider.of<CustomerProvider>(context,
+                                listen: false)
+                            .deleteCustomer(c.id);
+                        await _fetchCustomers();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Customer deleted.')),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            )
+            .toList(),
+        emptyMessage: 'No customers found',
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await showDialog(
@@ -223,6 +237,42 @@ class _ManageCustomersScreenState extends State<ManageCustomersScreen> {
           const SizedBox(height: 8),
           Text('Generated ID: $_generatedId'),
           const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _DetailRow(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF6B7280),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1F2937),
+            ),
+          ),
         ],
       ),
     );

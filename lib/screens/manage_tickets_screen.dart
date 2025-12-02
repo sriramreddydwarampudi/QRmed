@@ -79,10 +79,10 @@ class _ManageTicketsScreenState extends State<ManageTicketsScreen> {
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
-                    title: Text(ticket.title),
+                    title: Text(ticket.title ?? 'No Title'),
                     subtitle: Text(
-                      'Status: ${ticket.status.toString().split('.').last}\n' 
-                      'Raised by: ${ticket.raisedBy}\n' 
+                      'Status: ${ticket.status.toString().split('.').last ?? 'Unknown'}\n' 
+                      'Raised by: ${ticket.raisedBy ?? 'Unknown'}\n' 
                       'Date: ${ticket.timestamp.toLocal().toString().split(' ')[0]}',
                     ),
                     trailing: Row(

@@ -119,7 +119,7 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedDepartment,
+                initialValue: _selectedDepartment,
                 decoration: const InputDecoration(labelText: 'Department'),
                 items: departments.map((Department department) {
                   return DropdownMenuItem<String>(
@@ -141,7 +141,7 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedRole,
+                initialValue: _selectedRole,
                 decoration: const InputDecoration(labelText: 'Role'),
                 items: _availableRoles.map((String role) {
                   return DropdownMenuItem<String>(

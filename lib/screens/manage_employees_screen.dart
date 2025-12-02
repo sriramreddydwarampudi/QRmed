@@ -7,7 +7,7 @@ import 'add_edit_employee_screen.dart'; // Import the new screen
 class ManageEmployeesScreen extends StatefulWidget {
   final String collegeId;
   final String collegeType; // 'Dental' or 'MBBS'
-  ManageEmployeesScreen({super.key, required this.collegeId, required this.collegeType});
+  const ManageEmployeesScreen({super.key, required this.collegeId, required this.collegeType});
 
   @override
   State<ManageEmployeesScreen> createState() => _ManageEmployeesScreenState();
