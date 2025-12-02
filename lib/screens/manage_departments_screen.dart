@@ -4,6 +4,8 @@ import 'package:supreme_institution/data/requirements_data.dart';
 import 'package:supreme_institution/models/college.dart';
 import 'package:supreme_institution/models/department.dart';
 import 'package:supreme_institution/providers/department_provider.dart';
+import '../widgets/modern_details_dialog.dart';
+import '../widgets/management_list_widget.dart';
 
 class ManageDepartmentsScreen extends StatefulWidget {
   final College college;
@@ -18,23 +20,14 @@ class ManageDepartmentsScreen extends StatefulWidget {
 class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _selectedDepartment;
-  final _searchController = TextEditingController();
-  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text;
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<DepartmentProvider>(context, listen: false)
+          .fetchDepartmentsForCollege(widget.college.id);
     });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   void _showEditDialog(Department department, List<String> departmentNames) {
@@ -85,17 +78,21 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.blue,
                   ),
-                  onPressed: () {
-                    if (newSelectedDepartment != null) {
+                  onPressed: () async {
+                    if (newSelectedDepartment != null &&
+                        newSelectedDepartment != department.name) {
                       final updatedDepartment = Department(
                         id: department.id,
                         name: newSelectedDepartment!,
                         collegeId: department.collegeId,
                       );
-                      Provider.of<DepartmentProvider>(context, listen: false)
+                      await Provider.of<DepartmentProvider>(context,
+                              listen: false)
                           .updateDepartment(updatedDepartment);
+                      if (mounted) Navigator.of(context).pop();
+                    } else {
+                      Navigator.of(context).pop();
                     }
-                    Navigator.of(context).pop();
                   },
                   child: const Text('Save'),
                 ),
@@ -113,15 +110,38 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
     final departments =
         departmentProvider.getDepartmentsForCollege(widget.college.id);
 
-    final filteredDepartments = departments.where((department) {
-      return department.name.toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
-
     final collegeType = widget.college.type;
     final collegeSeats = widget.college.seats;
     final typeKey = collegeType == 'Dental' ? 'BDS' : collegeType;
     final departmentNames =
         requirements[typeKey]?[collegeSeats]?.keys.toList() ?? [];
+
+    final items = departments.map((department) {
+      return ManagementListItem(
+        id: department.id,
+        title: department.name,
+        subtitle: 'Department',
+        icon: Icons.school,
+        iconColor: Colors.blue,
+        actions: [
+          ManagementAction(
+            label: 'Edit',
+            icon: Icons.edit,
+            color: Colors.blue,
+            onPressed: () => _showEditDialog(department, departmentNames),
+          ),
+          ManagementAction(
+            label: 'Delete',
+            icon: Icons.delete,
+            color: Colors.red,
+            onPressed: () async {
+              await Provider.of<DepartmentProvider>(context, listen: false)
+                  .deleteDepartment(department.id, widget.college.id);
+            },
+          ),
+        ],
+      );
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -136,11 +156,11 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
           ],
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Form(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
               key: _formKey,
               child: Row(
                 children: [
@@ -186,14 +206,16 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         final newDepartment = Department(
                           id: DateTime.now().toString(),
                           name: _selectedDepartment!,
                           collegeId: widget.college.id,
                         );
-                        departmentProvider.addDepartment(newDepartment);
+                        await Provider.of<DepartmentProvider>(context,
+                                listen: false)
+                            .addDepartment(newDepartment);
                         setState(() {
                           _selectedDepartment = null;
                         });
@@ -204,74 +226,14 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  labelText: 'Search Departments',
-                  labelStyle: const TextStyle(color: Colors.blue),
-                  prefixIcon: const Icon(Icons.search, color: Colors.blue),
-                  suffixIcon: _searchQuery.isEmpty
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.blue),
-                          onPressed: () {
-                            _searchController.clear();
-                          },
-                        ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: const BorderSide(color: Colors.blue, width: 2.0),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: const BorderSide(color: Colors.blue, width: 1.0),
-                  ),
-                ),
-              ),
+          ),
+          Expanded(
+            child: ManagementListWidget(
+              items: items,
+              emptyMessage: 'No departments added yet',
             ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: filteredDepartments.length,
-                itemBuilder: (context, index) {
-                  final department = filteredDepartments[index];
-                  return Card(
-                    color: Colors.blue,
-                    child: ListTile(
-                      title: Text(
-                        department.name,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.white),
-                            onPressed: () =>
-                                _showEditDialog(department, departmentNames),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.white),
-                            onPressed: () {
-                              departmentProvider
-                                  .deleteDepartment(department.id);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

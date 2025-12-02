@@ -2,21 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter/rendering.dart';
-import 'package:file_picker/file_picker.dart'; // Add this line
-import 'package:excel/excel.dart' hide Border; // Add this line
-
+import 'package:file_picker/file_picker.dart';
+import 'package:excel/excel.dart' hide Border;
 import 'package:intl/intl.dart';
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' as io; // Conditional import for dart:io or dart:html
-import '../models/equipment.dart'; // Changed from product.dart
-import '../providers/equipment_provider.dart'; // Changed from product_provider.dart
-import '../providers/employee_provider.dart'; // Add employee provider
-import '../models/college.dart'; // Added import
-import '../providers/college_provider.dart'; // Added import
-import '../data/requirements_data.dart'; // Added import // Changed from product_provider.dart
+import 'dart:io' as io;
+import 'dart:html' as html show Blob, Url, document, AnchorElement;
+import '../models/equipment.dart';
+import '../providers/equipment_provider.dart';
+import '../providers/employee_provider.dart';
+import '../models/college.dart';
+import '../providers/college_provider.dart';
+import '../data/requirements_data.dart';
+import '../widgets/management_list_widget.dart';
+import '../widgets/modern_details_dialog.dart';
 
 class ManageEquipmentsScreen extends StatefulWidget { // Changed from ManageProductsScreen
   final String collegeName;
@@ -52,55 +55,218 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
   String? _selectedEquipment; // Added for dropdown
   College? _college; // Added to store college data
 
-  Future<void> _exportStickerAsPng(Equipment equipment) async { // Changed from Product product
+  Future<void> _exportStickerAsPng(Equipment equipment) async {
     try {
-      // Wait for the next frame to ensure the widget is built
-      await Future.delayed(const Duration(milliseconds: 100));
+      debugPrint('🎨 [STICKER] Starting export for equipment: ${equipment.id} - ${equipment.name}');
       
-      final key = _stickerKeys[equipment.id]; // Changed from product.id
-      if (key == null || key.currentContext == null) {
+      if (!_stickerKeys.containsKey(equipment.id)) {
+        debugPrint('❌ [STICKER] Key not found for equipment: ${equipment.id}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error: Sticker not found. Please refresh and try again.')),
+        );
+        return;
+      }
+
+      debugPrint('✅ [STICKER] Key found for equipment: ${equipment.id}');
+      final key = _stickerKeys[equipment.id]!;
+      
+      debugPrint('⏳ [STICKER] Waiting for widget to fully render...');
+      await Future.delayed(const Duration(milliseconds: 300));
+      
+      if (!mounted) {
+        debugPrint('❌ [STICKER] Widget not mounted');
+        return;
+      }
+      
+      if (key.currentContext == null) {
+        debugPrint('❌ [STICKER] Current context is null for equipment: ${equipment.id}');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error: Sticker not ready. Please try again.')),
         );
         return;
       }
 
-      RenderRepaintBoundary? boundary = key.currentContext!.findRenderObject() as RenderRepaintBoundary?;
+      debugPrint('✅ [STICKER] Current context found');
+      final RenderObject? renderObject = key.currentContext!.findRenderObject();
       
-      if (boundary == null) {
+      if (renderObject == null) {
+        debugPrint('❌ [STICKER] RenderObject is null');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error: Could not find sticker boundary.')),
+          const SnackBar(content: Text('Error: Could not find render object.')),
         );
         return;
       }
 
-      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final boundary = renderObject as RenderRepaintBoundary?;
       
-      if (byteData != null) {
+      if (boundary == null) {
+        debugPrint('❌ [STICKER] RenderRepaintBoundary is null');
+        debugPrint('📊 [STICKER] Render object type: ${renderObject.runtimeType}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error: Could not render sticker. Please try again.')),
+        );
+        return;
+      }
+
+      debugPrint('✅ [STICKER] RenderRepaintBoundary found');
+      debugPrint('📐 [STICKER] Converting to image with 2x pixelRatio...');
+      
+      // Use a more aggressive wait strategy
+      ui.Image? image;
+      int attempts = 0;
+      const maxAttempts = 5;
+      
+      while (image == null && attempts < maxAttempts) {
+        try {
+          debugPrint('🔄 [STICKER] Attempt ${attempts + 1}/$maxAttempts to capture image');
+          
+          // Wait for frame and extra time
+          await WidgetsBinding.instance.endOfFrame;
+          await Future.delayed(const Duration(milliseconds: 150));
+          
+          if (!mounted) {
+            debugPrint('❌ [STICKER] Widget unmounted');
+            return;
+          }
+          
+          // Check if boundary is in a valid state
+          debugPrint('✅ [STICKER] Boundary state: size=${boundary.size}, hasSize=${boundary.hasSize}');
+          
+          image = await boundary.toImage(pixelRatio: 2.0);
+          debugPrint('✅ [STICKER] Image created: ${image.width}x${image.height}');
+          break;
+        } catch (e) {
+          attempts++;
+          debugPrint('⚠️ [STICKER] Attempt $attempts failed: $e');
+          
+          if (attempts >= maxAttempts) {
+            debugPrint('❌ [STICKER] All attempts failed');
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Error: Could not export sticker after multiple attempts.')),
+              );
+            }
+            return;
+          }
+          
+          // Wait longer before retry
+          await Future.delayed(const Duration(milliseconds: 300));
+        }
+      }
+      
+      if (image == null) {
+        debugPrint('❌ [STICKER] Failed to create image');
+        return;
+      }
+      
+      debugPrint('🔄 [STICKER] Converting image to bytes...');
+      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      
+      if (byteData == null) {
+        debugPrint('❌ [STICKER] ByteData conversion failed');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error: Could not process image. Please try again.')),
+        );
+        return;
+      }
+
+      debugPrint('✅ [STICKER] ByteData created: ${byteData.lengthInBytes} bytes');
+
+      final bytes = byteData.buffer.asUint8List();
+      final fileName = 'equipment_${equipment.name.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.png';
+      
+      if (kIsWeb) {
+        debugPrint('🌐 [STICKER] Web platform detected - triggering download...');
+        _downloadFileWeb(bytes, fileName);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Downloaded: $fileName')),
+          );
+        }
+        return;
+      }
+
+      if (io.Platform.isAndroid || io.Platform.isIOS) {
+        debugPrint('📱 [STICKER] Mobile platform detected - saving to gallery...');
         final result = await ImageGallerySaverPlus.saveImage(
-          byteData.buffer.asUint8List(),
-          name: 'equipment_${equipment.id}_sticker', // Changed from product.id
+          bytes,
+          name: fileName.replaceAll('.png', ''),
           quality: 100,
         );
         
+        debugPrint('📌 [STICKER] Save result: $result');
+        
         if (mounted) {
+          final success = result['isSuccess'] == true;
+          debugPrint('${success ? '✅' : '❌'} [STICKER] Export ${success ? 'succeeded' : 'failed'}');
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['isSuccess'] == true 
+              content: Text(success 
                 ? 'Sticker exported to gallery successfully!' 
                 : 'Failed to export sticker.'),
             ),
           );
         }
+      } else {
+        debugPrint('🖥️ [STICKER] Desktop platform detected - saving to file...');
+        final savePath = await FilePicker.platform.saveFile(
+          dialogTitle: 'Save Equipment Sticker',
+          fileName: fileName,
+          type: FileType.image,
+          allowedExtensions: ['png'],
+        );
+        
+        if (savePath != null) {
+          debugPrint('💾 [STICKER] Saving to: $savePath');
+          final file = io.File(savePath);
+          await file.writeAsBytes(bytes);
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Sticker saved to: $savePath')),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Save cancelled.')),
+            );
+          }
+        }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('💥 [STICKER] EXCEPTION: $e');
+      debugPrint('📍 [STICKER] STACK TRACE:\n$stackTrace');
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error exporting sticker: $e')),
         );
       }
     }
+  }
+
+  void _downloadFileWeb(Uint8List bytes, String fileName) {
+    debugPrint('🌐 [STICKER] Downloading on web: $fileName');
+    
+    final String mimeType = 'image/png';
+    
+    final blob = html.Blob([bytes], mimeType);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.document.createElement('a') as html.AnchorElement
+      ..href = url
+      ..style.display = 'none'
+      ..download = fileName;
+    
+    html.document.body?.append(anchor);
+    anchor.click();
+    
+    // Cleanup
+    html.Url.revokeObjectUrl(url);
+    anchor.remove();
+    
+    debugPrint('✅ [STICKER] Web download initiated: $fileName');
   }
 
   @override
@@ -779,11 +945,10 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
 
   @override
   Widget build(BuildContext context) {
-    final equipments = Provider.of<EquipmentProvider>(context).equipments // Changed from products = Provider.of<ProductProvider>(context).products
-        .where((p) => p.collegeId == widget.collegeName).toList(); // Changed from p.collegeId
+    final equipments = Provider.of<EquipmentProvider>(context).equipments
+        .where((p) => p.collegeId == widget.collegeName).toList();
     
-    // Ensure all equipments have keys
-    for (var p in equipments) { // Changed from products
+    for (var p in equipments) {
       if (!_stickerKeys.containsKey(p.id)) {
         _stickerKeys[p.id] = GlobalKey();
       }
@@ -791,7 +956,8 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manage Equipments'), // Changed from Manage Products
+        title: const Text('Manage Equipments'),
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.upload_file),
@@ -799,204 +965,147 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
             onPressed: _uploadExcel,
           ),
           IconButton(
-            icon: const Icon(Icons.download), // Icon for export
+            icon: const Icon(Icons.download),
             tooltip: 'Export Equipments to Excel',
             onPressed: _exportEquipmentsToExcel,
           ),
           IconButton(
-            icon: const Icon(Icons.delete_sweep), // Icon for delete all
+            icon: const Icon(Icons.delete_sweep),
             tooltip: 'Delete All Equipments',
             onPressed: _deleteAllEquipments,
           ),
         ],
-      ),      body: Stack(
+      ),
+      body: Stack(
         children: [
-          equipments.isEmpty // Changed from products.isEmpty
-              ? const Center(child: Text('No equipments found.')) // Changed from No products found
-              : ListView.builder(
-                  itemCount: equipments.length, // Changed from products.length
-                  itemBuilder: (context, idx) {
-                    final p = equipments[idx]; // Changed from final p = products[idx]
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: ListTile( //
-                        title: Text(p.name),
-                        subtitle: Text('ID: ${p.id}\nSerial: ${p.serialNo}'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.download),
-                              tooltip: 'Export Sticker',
-                              onPressed: () => _exportStickerAsPng(p),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.remove_red_eye),
-                              tooltip: 'View',
-                              onPressed: () => _showEquipmentDetails(p), // Changed from _showProductDetails
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              tooltip: 'Edit',
-                              onPressed: () async {
-                                await _editEquipment(p); // Changed from _editProduct
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete),
-                              tooltip: 'Delete',
-                              onPressed: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (ctx) => AlertDialog(
-                                    title: const Text('Delete Equipment'), // Changed from Delete Product
-                                    content: const Text('Are you sure you want to delete this equipment?'), // Changed from product
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.of(ctx).pop(false),
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.of(ctx).pop(true),
-                                        child: const Text('Delete'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                                if (confirm == true) {
-                                  await _deleteEquipment(p.id); // Changed from _deleteProduct
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Equipment deleted.')), // Changed from Product deleted
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        ),
+          ManagementListWidget(
+            items: equipments.map((e) => ManagementListItem(
+              id: e.id,
+              title: e.name,
+              subtitle: '${e.serialNo} • ${e.department}',
+              icon: Icons.devices_other,
+              iconColor: const Color(0xFF2563EB),
+              badge: e.status,
+              badgeColor: e.status == 'Working' ? Colors.green : (e.status == 'Under Maintenance' ? Colors.orange : Colors.red),
+              actions: [
+                ManagementAction(
+                  label: 'View',
+                  icon: Icons.remove_red_eye,
+                  color: const Color(0xFF2563EB),
+                  onPressed: () => _showEquipmentDetails(e),
+                ),
+                ManagementAction(
+                  label: 'Download',
+                  icon: Icons.download,
+                  color: const Color(0xFF059669),
+                  onPressed: () => _exportStickerAsPng(e),
+                ),
+                ManagementAction(
+                  label: 'Edit',
+                  icon: Icons.edit,
+                  color: const Color(0xFF16A34A),
+                  onPressed: () async => await _editEquipment(e),
+                ),
+                ManagementAction(
+                  label: 'Delete',
+                  icon: Icons.delete,
+                  color: const Color(0xFFDC2626),
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Delete Equipment'),
+                        content: const Text('Are you sure you want to delete this equipment?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(true),
+                            child: const Text('Delete'),
+                          ),
+                        ],
                       ),
                     );
+                    if (confirm == true) {
+                      await _deleteEquipment(e.id);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Equipment deleted.')),
+                      );
+                    }
                   },
                 ),
-          // Offstage sticker widgets for export
-          ...equipments.map((p) => Offstage(
-                offstage: true,
-                child: RepaintBoundary(
-                  key: _stickerKeys[p.id],
-                  child: _buildStickerWidget(p),
-                ),
-              )),
+              ],
+            )).toList(),
+            emptyMessage: 'No equipments found. Add one to get started!',
+          ),
+          ...equipments.map((p) {
+            // Ensure the key exists
+            if (!_stickerKeys.containsKey(p.id)) {
+              debugPrint('🔑 [STICKER] Creating new GlobalKey for equipment: ${p.id}');
+              _stickerKeys[p.id] = GlobalKey();
+            }
+            debugPrint('📌 [STICKER] Using key for equipment: ${p.id}');
+            return Positioned(
+              top: -9999,
+              left: -9999,
+              child: RepaintBoundary(
+                key: _stickerKeys[p.id],
+                child: _buildStickerWidget(p),
+              ),
+            );
+          }),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddEquipmentDialog, // Changed from _showAddProductDialog
-        tooltip: 'Add Equipment', // Changed from Add Product
+        onPressed: _showAddEquipmentDialog,
+        tooltip: 'Add Equipment',
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  void _showEquipmentDetails(Equipment p) { // Changed from _showProductDetails(Product p)
+  void _showEquipmentDetails(Equipment p) {
     showDialog(
       context: context,
-      builder: (ctx) => Dialog(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppBar(
-                title: const Text('Equipment Details'), // Changed from Product Details
-                automaticallyImplyLeading: false,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(ctx).pop(),
-                  ),
-                ],
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildDetailRow('ID', p.id),
-                      _buildDetailRow('Name', p.name),
-                      _buildDetailRow('Type', p.type),
-                      _buildDetailRow('Group', p.group),
-                      _buildDetailRow('Mode', p.mode),
-                      _buildDetailRow('Manufacturer', p.manufacturer),
-                      _buildDetailRow('Serial', p.serialNo),
-                      _buildDetailRow('Department', p.department),
-                      _buildDetailRow('Status', p.status),
-                      _buildDetailRow('Service Status', p.service),
-                      _buildDetailRow('Warranty Upto', p.warrantyUpto != null ? DateFormat('yyyy-MM-dd').format(p.warrantyUpto!) : '-'),
-                      _buildDetailRow('Purchased Cost', p.purchasedCost.toString()),
-                      _buildDetailRow('Installation Date', DateFormat('yyyy-MM-dd').format(p.installationDate)),
-                      _buildDetailRow('Employee Assigned', p.assignedEmployeeId ?? '-'),
-                      // _buildDetailRow('Verified Date', p.verifiedDate != null ? DateFormat('yyyy-MM-dd').format(p.verifiedDate!) : '-'),
-                      // _buildDetailRow('Verified By', p.verifiedBy ?? '-'),
-                      _buildDetailRow('College', p.collegeId),
-                      const SizedBox(height: 24),
-                      const Center(
-                        child: Text(
-                          'QR Code',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: Colors.grey.shade300, width: 2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: QrImageView(
-                            data: p.id,
-                            version: QrVersions.auto,
-                            size: 150,
-                            backgroundColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+      builder: (ctx) => ModernDetailsDialog(
+        title: 'Equipment Details',
+        details: [
+          DetailRow(label: 'ID', value: p.id),
+          DetailRow(label: 'Name', value: p.name),
+          DetailRow(label: 'Type', value: p.type),
+          DetailRow(label: 'Group', value: p.group),
+          DetailRow(label: 'Mode', value: p.mode),
+          DetailRow(label: 'Manufacturer', value: p.manufacturer),
+          DetailRow(label: 'Serial Number', value: p.serialNo),
+          DetailRow(label: 'Department', value: p.department),
+          DetailRow(label: 'Status', value: p.status),
+          DetailRow(label: 'Service Status', value: p.service),
+          DetailRow(
+            label: 'Warranty Upto',
+            value: p.warrantyUpto != null ? DateFormat('yyyy-MM-dd').format(p.warrantyUpto!) : '-',
           ),
+          DetailRow(label: 'Purchased Cost', value: '₹${p.purchasedCost.toString()}'),
+          DetailRow(
+            label: 'Installation Date',
+            value: DateFormat('yyyy-MM-dd').format(p.installationDate),
+          ),
+          DetailRow(label: 'Employee Assigned', value: p.assignedEmployeeId ?? '-'),
+          DetailRow(label: 'College', value: p.collegeId),
+        ],
+        qrCodeWidget: QrImageView(
+          data: p.id,
+          version: QrVersions.auto,
+          size: 150,
+          backgroundColor: Colors.white,
         ),
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          Expanded(
-            child: Text(value),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildStickerWidget(Equipment p) { // Changed from Product p
+  Widget _buildStickerWidget(Equipment p) {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.all(16),
@@ -1005,6 +1114,25 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Text(
+            'QRmed',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Color(0xFF1976D2),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            widget.collegeName,
+            style: const TextStyle(
+              fontSize: 11,
+              color: Colors.grey,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
           Text(
             p.name,
             style: const TextStyle(
@@ -1016,10 +1144,6 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
           const SizedBox(height: 8),
           Text(
             'ID: ${p.id}',
-            style: const TextStyle(fontSize: 12),
-          ),
-          Text(
-            'Serial: ${p.serialNo}',
             style: const TextStyle(fontSize: 12),
           ),
           const SizedBox(height: 12),
@@ -1038,13 +1162,13 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
           ),
           const SizedBox(height: 12),
           const Text(
-            'Scan QR code for details',
-            style: TextStyle(fontSize: 11),
+            'Scan with QRmed app',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
           ),
           const Text(
-            'Download our app!',
-            style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic),
+            'for equipment details',
+            style: TextStyle(fontSize: 10),
             textAlign: TextAlign.center,
           ),
         ],

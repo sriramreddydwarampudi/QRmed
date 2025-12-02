@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supreme_institution/models/college.dart';
 import 'package:supreme_institution/providers/college_provider.dart';
+import 'package:supreme_institution/providers/equipment_provider.dart';
+import 'package:supreme_institution/providers/employee_provider.dart';
 import 'package:supreme_institution/services/auth_service.dart';
 import 'package:supreme_institution/widgets/find_equipment_widget.dart';
 import 'package:supreme_institution/widgets/customer_home_tab.dart';
+import 'package:supreme_institution/widgets/college_equipments_widget.dart';
 
 class CustomerDashboardScreen extends StatefulWidget {
   final String customerName;
@@ -26,17 +29,26 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
 
   Future<void> _fetchAssociatedCollegeDetails() async {
     final collegeProvider = Provider.of<CollegeProvider>(context, listen: false);
-    await collegeProvider.fetchColleges(); // Ensure colleges are fetched
+    final equipmentProvider = Provider.of<EquipmentProvider>(context, listen: false);
+    final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
+    
+    await collegeProvider.fetchColleges();
+    await equipmentProvider.fetchEquipments();
+    await employeeProvider.fetchEmployees();
+    
     try {
       final college = collegeProvider.colleges.firstWhere(
-        (c) => c.id == widget.collegeName, // collegeName is collegeId
+        (c) => c.id == widget.collegeName,
       );
+      debugPrint('✅ [CustomerDashboard] Loaded college: ${college.name}');
+      debugPrint('✅ [CustomerDashboard] Total equipments: ${equipmentProvider.equipments.length}');
+      debugPrint('✅ [CustomerDashboard] Total employees: ${employeeProvider.employees.length}');
+      
       setState(() {
         _associatedCollege = college;
       });
     } catch (e) {
-      debugPrint('Associated college not found for customer: ${widget.collegeName}');
-      // Handle error, e.g., show a message or navigate away
+      debugPrint('❌ Associated college not found for customer: ${widget.collegeName}');
     }
   }
 
@@ -73,7 +85,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
           children: [
             CustomerHomeTab(associatedCollege: _associatedCollege!),
             const FindEquipmentWidget(),
-            const Center(child: Text('College Equipments Page')), // Placeholder
+            CollegeEquipmentsWidget(collegeName: _associatedCollege!.id),
           ],
         ),
       ),

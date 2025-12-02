@@ -37,7 +37,6 @@ class _EmployeeHomeTabState extends State<EmployeeHomeTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Welcome, ${widget.employeeId}', style: Theme.of(context).textTheme.headlineSmall), // Use employeeId for welcome message
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),

@@ -4,6 +4,7 @@ import 'package:supreme_institution/screens/add_edit_customer_screen.dart';
 import '../models/customer.dart';
 import '../providers/customer_provider.dart';
 import '../widgets/management_list_widget.dart';
+import '../widgets/modern_details_dialog.dart';
 
 class ManageCustomersScreen extends StatefulWidget {
   final String collegeName;
@@ -85,25 +86,14 @@ class _ManageCustomersScreenState extends State<ManageCustomersScreen> {
                     onPressed: () {
                       showDialog(
                         context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Customer Details'),
-                          content: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _DetailRow('Name', c.name),
-                                _DetailRow('ID', c.id),
-                                _DetailRow('Phone', c.phone ?? '-'),
-                                _DetailRow('Email', c.email ?? '-'),
-                                _DetailRow('College', c.collegeId),
-                              ],
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(),
-                              child: const Text('Close'),
-                            ),
+                        builder: (ctx) => ModernDetailsDialog(
+                          title: 'Customer Details',
+                          details: [
+                            DetailRow(label: 'Name', value: c.name),
+                            DetailRow(label: 'ID', value: c.id),
+                            DetailRow(label: 'Phone', value: c.phone ?? '-'),
+                            DetailRow(label: 'Email', value: c.email ?? '-'),
+                            DetailRow(label: 'College', value: c.collegeId),
                           ],
                         ),
                       );
@@ -237,42 +227,6 @@ class _ManageCustomersScreenState extends State<ManageCustomersScreen> {
           const SizedBox(height: 8),
           Text('Generated ID: $_generatedId'),
           const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-}
-
-class _DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _DetailRow(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF6B7280),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF1F2937),
-            ),
-          ),
         ],
       ),
     );

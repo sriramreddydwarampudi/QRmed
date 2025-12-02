@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supreme_institution/models/equipment.dart';
 import 'package:supreme_institution/providers/equipment_provider.dart';
+import '../widgets/management_list_widget.dart';
 
 class MyEquipmentsScreen extends StatefulWidget {
   final String employeeId;
@@ -27,102 +28,92 @@ class _MyEquipmentsScreenState extends State<MyEquipmentsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Assigned Equipments'),
+        elevation: 0,
       ),
-      body: myEquipments.isEmpty
-          ? const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Text('You have no equipment assigned.'),
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(8.0),
-              itemCount: myEquipments.length,
-              itemBuilder: (context, index) {
-                final equipment = myEquipments[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(equipment.name, style: Theme.of(context).textTheme.titleMedium),
-                        Text('ID: ${equipment.id}'),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Status:'),
-                            Row(
-                              children: [
-                                Text(equipment.status == 'Working' ? 'Working' : 'Not Working', style: TextStyle(color: equipment.status == 'Working' ? Colors.green : Colors.red)),
-                                Switch(
-                                  value: equipment.status == 'Working',
-                                  onChanged: (bool value) {
-                                    final newStatus = value ? 'Working' : 'Not Working';
-                                    final updatedEquipment = equipment.copyWith(status: newStatus);
-                                    equipmentProvider.updateEquipment(equipment.id, updatedEquipment);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const Divider(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.visibility),
-                              tooltip: 'View',
-                              onPressed: () {
-                                // Placeholder for view dialog
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              tooltip: 'Edit',
-                              onPressed: () {
-                                // Placeholder for edit dialog
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.person_remove),
-                              tooltip: 'Unassign',
-                              onPressed: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (ctx) => AlertDialog(
-                                    title: const Text('Confirm Unassignment'),
-                                    content: const Text('Are you sure you want to unassign this equipment from yourself?'),
-                                    actions: [
-                                      TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
-                                      TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Unassign')),
-                                    ],
-                                  ),
-                                );
-                                if (confirm == true) {
-                                  final updatedEquipment = equipment.copyWith(assignedEmployeeId: '');
-                                  await equipmentProvider.updateEquipment(equipment.id, updatedEquipment);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Equipment unassigned.')),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
+      body: ManagementListWidget(
+        items: myEquipments.map((equipment) => ManagementListItem(
+          id: equipment.id,
+          title: equipment.name,
+          subtitle: '${equipment.serialNo} • ${equipment.department}',
+          icon: Icons.devices_other,
+          iconColor: const Color(0xFF2563EB),
+          badge: equipment.status,
+          badgeColor: equipment.status == 'Working' ? Colors.green : Colors.red,
+          actions: [
+            ManagementAction(
+              label: 'View',
+              icon: Icons.remove_red_eye,
+              color: const Color(0xFF2563EB),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text(equipment.name),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('ID: ${equipment.id}'),
+                          Text('Serial No: ${equipment.serialNo}'),
+                          Text('Department: ${equipment.department}'),
+                          Text('Status: ${equipment.status}'),
+                          Text('Type: ${equipment.type}'),
+                          Text('Manufacturer: ${equipment.manufacturer}'),
+                        ],
+                      ),
                     ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('Close'),
+                      ),
+                    ],
                   ),
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddEquipmentDialog(context, allCollegeEquipments),
-        tooltip: 'Add Equipment from College',
-        child: const Icon(Icons.add),
+            ManagementAction(
+              label: 'Toggle',
+              icon: equipment.status == 'Working' ? Icons.check_circle : Icons.error_outline,
+              color: equipment.status == 'Working' ? Colors.green : Colors.red,
+              onPressed: () {
+                final newStatus = equipment.status == 'Working' ? 'Not Working' : 'Working';
+                final updatedEquipment = equipment.copyWith(status: newStatus);
+                equipmentProvider.updateEquipment(equipment.id, updatedEquipment);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Status changed to $newStatus')),
+                );
+              },
+            ),
+            ManagementAction(
+              label: 'Unassign',
+              icon: Icons.person_remove,
+              color: const Color(0xFFDC2626),
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Confirm Unassignment'),
+                    content: const Text('Are you sure you want to unassign this equipment from yourself?'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
+                      TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Unassign')),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  final updatedEquipment = equipment.copyWith(assignedEmployeeId: '');
+                  await equipmentProvider.updateEquipment(equipment.id, updatedEquipment);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Equipment unassigned.')),
+                  );
+                }
+              },
+            ),
+          ],
+        )).toList(),
+        emptyMessage: 'You have no equipment assigned.',
       ),
     );
   }

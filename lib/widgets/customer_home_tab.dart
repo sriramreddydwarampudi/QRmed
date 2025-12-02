@@ -4,6 +4,7 @@ import 'package:supreme_institution/models/college.dart';
 import 'package:supreme_institution/models/equipment.dart';
 import 'package:supreme_institution/models/inspection_result.dart';
 import 'package:supreme_institution/models/ticket.dart';
+import 'package:supreme_institution/providers/department_provider.dart';
 import 'package:supreme_institution/providers/employee_provider.dart';
 import 'package:supreme_institution/providers/equipment_provider.dart';
 import 'package:supreme_institution/providers/inspection_provider.dart';
@@ -21,15 +22,21 @@ class CustomerHomeTab extends StatelessWidget {
     final equipmentProvider = Provider.of<EquipmentProvider>(context);
     final List<Equipment> allEquipments = equipmentProvider.equipments;
     final employeeProvider = Provider.of<EmployeeProvider>(context);
-    final inspectionProvider = Provider.of<InspectionProvider>(context, listen: false); // Access InspectionProvider
+    final departmentProvider = Provider.of<DepartmentProvider>(context);
+    final inspectionProvider = Provider.of<InspectionProvider>(context, listen: false);
 
     // Filtering data based on collegeId
-    final collegeEquipments = equipmentProvider.equipments.where((e) => e.collegeId == associatedCollege.id).length;
+    final collegeEquipmentsList = equipmentProvider.equipments.where((e) => e.collegeId == associatedCollege.id).toList();
+    final collegeEquipments = collegeEquipmentsList.length;
     final totalEmployees = employeeProvider.employees.where((e) => e.collegeId == associatedCollege.id).length;
-
-    // Placeholder data
-    const totalDepartments = '15';
-    const notWorkingCount = '8';
+    final totalDepartments = departmentProvider.departments.where((d) => d.collegeId == associatedCollege.id).length;
+    final notWorkingEquipments = collegeEquipmentsList.where((e) => e.status != 'Working').length;
+    
+    debugPrint('🔍 [CustomerHomeTab] College: ${associatedCollege.name}');
+    debugPrint('🔍 [CustomerHomeTab] College Equipments: $collegeEquipments');
+    debugPrint('🔍 [CustomerHomeTab] Total Departments: $totalDepartments');
+    debugPrint('🔍 [CustomerHomeTab] Total Employees: $totalEmployees');
+    debugPrint('🔍 [CustomerHomeTab] Not Working Equipments: $notWorkingEquipments');
 
     void showInspectionResultDialog(InspectionResult result) {
       showDialog(
@@ -101,8 +108,8 @@ class CustomerHomeTab extends StatelessWidget {
                 icon: Icons.school,
                 color: Colors.blue,
               ),
-              const DashboardTile(
-                count: totalDepartments,
+              DashboardTile(
+                count: totalDepartments.toString(),
                 title: 'Total Departments',
                 icon: Icons.business,
                 color: Colors.purple,
@@ -113,8 +120,8 @@ class CustomerHomeTab extends StatelessWidget {
                 icon: Icons.people,
                 color: Colors.green,
               ),
-              const DashboardTile(
-                count: notWorkingCount,
+              DashboardTile(
+                count: notWorkingEquipments.toString(),
                 title: 'Equipments Not Working',
                 icon: Icons.build,
                 color: Colors.red,

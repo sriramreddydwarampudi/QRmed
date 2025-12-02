@@ -23,6 +23,8 @@ class AddEditEmployeeScreen extends StatefulWidget {
 class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   String? _selectedDepartment;
   String? _selectedRole;
@@ -59,6 +61,8 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
 
     if (widget.employee != null) {
       _nameController.text = widget.employee!.name;
+      _emailController.text = widget.employee!.email ?? '';
+      _phoneController.text = widget.employee!.phone ?? '';
       _passwordController.text = widget.employee!.password;
       _selectedDepartment = widget.employee!.department;
       // Ensure the existing role is valid, otherwise, it will be null.
@@ -71,6 +75,8 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -82,6 +88,8 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
       final newEmployee = Employee(
         id: employeeId,
         name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        phone: _phoneController.text.trim(),
         password: _passwordController.text.trim(),
         collegeId: widget.collegeId,
         role: _selectedRole!,
@@ -113,6 +121,34 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the employee name.';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value != null && value.isNotEmpty) {
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                      return 'Please enter a valid email address.';
+                    }
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _phoneController,
+                decoration: const InputDecoration(labelText: 'Phone Number'),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value != null && value.isNotEmpty) {
+                    if (!RegExp(r'^\d{10}').hasMatch(value)) {
+                      return 'Please enter a valid phone number (at least 10 digits).';
+                    }
                   }
                   return null;
                 },

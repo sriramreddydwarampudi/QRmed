@@ -17,11 +17,27 @@ class Department {
     };
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'collegeId': collegeId,
+    };
+  }
+
   factory Department.fromMap(Map<String, dynamic> map) {
     return Department(
       id: map['id'] ?? '',
       name: map['name'] ?? '',
       collegeId: map['collegeId'] ?? '',
+    );
+  }
+
+  factory Department.fromJson(Map<String, dynamic> json) {
+    return Department(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      collegeId: json['collegeId'] ?? '',
     );
   }
 }
