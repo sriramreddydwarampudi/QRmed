@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:supreme_institution/screens/manage_colleges_screen.dart';
 import 'package:supreme_institution/screens/manage_inspection_screen.dart';
 import 'package:supreme_institution/screens/manage_tickets_screen.dart';
+import 'package:supreme_institution/screens/admin_equipments_not_working_screen.dart';
 import 'package:supreme_institution/services/auth_service.dart';
 import 'package:supreme_institution/widgets/admin_home_tab.dart';
 
@@ -12,7 +13,7 @@ class AdminDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Admin Dashboard'),
@@ -30,6 +31,7 @@ class AdminDashboardScreen extends StatelessWidget {
               Tab(icon: Icon(Icons.school), text: 'Colleges'),
               Tab(icon: Icon(Icons.fact_check), text: 'Inspection'),
               Tab(icon: Icon(Icons.confirmation_number), text: 'Tickets'),
+              Tab(icon: Icon(Icons.error_outline), text: 'Equipments Not Working'),
             ],
           ),
         ),
@@ -39,6 +41,7 @@ class AdminDashboardScreen extends StatelessWidget {
             ManageCollegesScreen(),
             ManageInspectionScreen(),
             ManageTicketsScreen(userId: 'admin', userRole: 'admin', collegeId: ''),
+            AdminEquipmentsNotWorkingScreen(),
           ],
         ),
       ),

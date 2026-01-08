@@ -134,12 +134,26 @@ class _MyEquipmentsScreenState extends State<MyEquipmentsScreen> {
                 child: unassignedEquipments.isEmpty
                     ? const Text('No unassigned equipment available in your college.')
                     : DropdownButtonFormField<Equipment>(
+                        isExpanded: true,
                         decoration: const InputDecoration(labelText: 'Select Equipment'),
                         initialValue: selectedEquipment,
+                        selectedItemBuilder: (BuildContext context) {
+                          return unassignedEquipments.map((equipment) {
+                            return Text(
+                              '${equipment.name} (ID: ${equipment.id})',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            );
+                          }).toList();
+                        },
                         items: unassignedEquipments.map((equipment) {
                           return DropdownMenuItem<Equipment>(
                             value: equipment,
-                            child: Text('${equipment.name} (ID: ${equipment.id})'),
+                            child: Text(
+                              '${equipment.name} (ID: ${equipment.id})',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
                           );
                         }).toList(),
                         onChanged: (value) {
@@ -147,7 +161,6 @@ class _MyEquipmentsScreenState extends State<MyEquipmentsScreen> {
                             selectedEquipment = value;
                           });
                         },
-                        isExpanded: true,
                       ),
               ),
               actions: [

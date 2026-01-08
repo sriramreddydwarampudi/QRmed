@@ -8,6 +8,8 @@ import 'package:supreme_institution/models/department.dart';
 import 'package:supreme_institution/providers/department_provider.dart';
 import 'package:supreme_institution/providers/equipment_provider.dart';
 import 'package:supreme_institution/providers/ticket_provider.dart';
+import 'package:supreme_institution/providers/employee_provider.dart';
+import 'package:supreme_institution/providers/customer_provider.dart';
 import 'package:supreme_institution/widgets/dashboard_tile.dart';
 
 class AdminHomeTab extends StatefulWidget {
@@ -29,7 +31,10 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
 
   Future<void> _fetchCollegesAndSetInitial() async {
     final collegeProvider = Provider.of<CollegeProvider>(context, listen: false);
+    final equipmentProvider = Provider.of<EquipmentProvider>(context, listen: false);
     await collegeProvider.fetchColleges();
+    // Also fetch equipments to ensure we have latest data
+    await equipmentProvider.fetchEquipments();
     if (collegeProvider.colleges.isNotEmpty) {
       setState(() {
         _selectedCollege = collegeProvider.colleges.first;
@@ -155,9 +160,17 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
 
     final collegeCount = collegeProvider.colleges.length;
     final ticketCount = ticketProvider.tickets.length;
+    
+    // Use the same filtering logic as the dedicated tab for consistency
     final notWorkingEquipmentCount = equipmentProvider.equipments
-        .where((e) => e.status != 'Working')
+        .where((e) => e.isNotWorking)
         .length;
+    
+    // Debug logging to help diagnose issues
+    debugPrint('📊 [AdminHomeTab] Total equipments: ${equipmentProvider.equipments.length}');
+    debugPrint('📊 [AdminHomeTab] Not working count: $notWorkingEquipmentCount');
+    final allStatuses = equipmentProvider.equipments.map((e) => e.status.trim()).toSet();
+    debugPrint('📊 [AdminHomeTab] All unique statuses: $allStatuses');
 
     final departments = _selectedCollege != null
         ? departmentProvider.getDepartmentsForCollege(_selectedCollege!.id)
@@ -204,15 +217,29 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
               : Column(
                   children: [
                     DropdownButtonFormField<College>(
+                      isExpanded: true,
                       initialValue: _selectedCollege,
                       decoration: const InputDecoration(
                         labelText: 'Select College',
                         border: OutlineInputBorder(),
                       ),
+                      selectedItemBuilder: (BuildContext context) {
+                        return collegeProvider.colleges.map((college) {
+                          return Text(
+                            college.name,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          );
+                        }).toList();
+                      },
                       items: collegeProvider.colleges
                           .map((college) => DropdownMenuItem(
                                 value: college,
-                                child: Text(college.name),
+                                child: Text(
+                                  college.name,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
                               ))
                           .toList(),
                       onChanged: (College? newValue) {
@@ -231,20 +258,37 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
                     const SizedBox(height: 16),
                     if (_selectedCollege != null)
                       DropdownButtonFormField<String>(
+                        isExpanded: true,
                         initialValue: _selectedDepartment,
                         decoration: const InputDecoration(
                           labelText: 'Select Department',
                           border: OutlineInputBorder(),
                         ),
+                        selectedItemBuilder: (BuildContext context) {
+                          return [
+                            const Text('All', overflow: TextOverflow.ellipsis, maxLines: 1),
+                            ...departments.map((Department department) {
+                              return Text(
+                                department.name,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              );
+                            }),
+                          ];
+                        },
                         items: [
                           const DropdownMenuItem<String>(
                             value: 'All',
-                            child: Text('All'),
+                            child: Text('All', overflow: TextOverflow.ellipsis, maxLines: 1),
                           ),
                           ...departments.map((Department department) {
                             return DropdownMenuItem<String>(
                               value: department.name,
-                              child: Text(department.name),
+                              child: Text(
+                                department.name,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                             );
                           }),
                         ],

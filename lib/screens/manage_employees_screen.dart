@@ -23,6 +23,11 @@ class _ManageEmployeesScreenState extends State<ManageEmployeesScreen> {
   void initState() {
     super.initState();
     _fetchEmployees();
+    // Fetch departments to ensure they're loaded for validation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<DepartmentProvider>(context, listen: false)
+          .fetchDepartmentsForCollege(widget.collegeId);
+    });
   }
 
   Future<void> _fetchEmployees() async {
@@ -137,6 +142,8 @@ class _ManageEmployeesScreenState extends State<ManageEmployeesScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final departmentProvider = Provider.of<DepartmentProvider>(context, listen: false);
+          // Ensure departments are fetched before checking
+          await departmentProvider.fetchDepartmentsForCollege(widget.collegeId);
           final departments = departmentProvider.getDepartmentsForCollege(widget.collegeId);
           
           if (departments == null || departments.isEmpty) {

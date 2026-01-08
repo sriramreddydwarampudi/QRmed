@@ -5,7 +5,11 @@ import 'package:supreme_institution/data/requirements_data.dart';
 import 'package:supreme_institution/data/department_group.dart';
 import 'package:supreme_institution/models/college.dart';
 import 'package:supreme_institution/models/equipment.dart'; // Add this import
+import 'package:supreme_institution/models/department.dart';
+import 'package:supreme_institution/models/employee.dart';
 import 'package:supreme_institution/providers/college_provider.dart';
+import 'package:supreme_institution/providers/department_provider.dart';
+import 'package:supreme_institution/providers/employee_provider.dart';
 import 'package:uuid/uuid.dart'; // Import the uuid package
 
 class AddEditEquipmentScreen extends StatefulWidget {
@@ -25,7 +29,6 @@ class AddEditEquipmentScreen extends StatefulWidget {
 class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final _departmentController = TextEditingController();
   final _statusController = TextEditingController();
   final _mfgController = TextEditingController();
   final _serialController = TextEditingController();
@@ -45,17 +48,26 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
   List<String> _departmentSuggestions = [];
   List<String> _groupSuggestions = [];
   String? _selectedEquipment;
+  String? _selectedDepartment; // Changed from TextEditingController
+  String? _selectedEmployeeId; // For employee assignment
   College? _college;
 
   @override
   void initState() {
     super.initState();
     final collegeProvider = Provider.of<CollegeProvider>(context, listen: false);
+    final departmentProvider = Provider.of<DepartmentProvider>(context, listen: false);
+    final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
+    
     print('AddEditEquipmentScreen: Accessed CollegeProvider.');
     try {
       _college = collegeProvider.colleges.firstWhere((c) => c.name == widget.collegeName);
       print('AddEditEquipmentScreen: College found: ${_college!.name}, type: ${_college!.type}, seats: ${_college!.seats}');
       _loadEquipmentNames(_college!.type, _college!.seats);
+      
+      // Fetch departments and employees for the college
+      departmentProvider.fetchDepartmentsForCollege(_college!.id);
+      employeeProvider.fetchEmployees();
     } catch (e) {
       print('AddEditEquipmentScreen: College not found for name: ${widget.collegeName}. Error: $e');
       _college = null; // Ensure _college is null if not found
@@ -64,7 +76,8 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
     if (widget.equipment != null) {
       print('AddEditEquipmentScreen: Editing existing equipment: ${widget.equipment!.name}');
       _selectedEquipment = widget.equipment!.name;
-      _departmentController.text = widget.equipment!.department;
+      _selectedDepartment = widget.equipment!.department;
+      _selectedEmployeeId = widget.equipment!.assignedEmployeeId;
       _statusController.text = widget.equipment!.status;
       _groupController.text = widget.equipment!.group;
       _mfgController.text = widget.equipment!.manufacturer;
@@ -164,15 +177,17 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
       _departmentSuggestions = departments.toList();
       _groupSuggestions = groups.toList();
       if (_departmentSuggestions.length == 1) {
-        _departmentController.text = _departmentSuggestions.first;
+        _selectedDepartment = _departmentSuggestions.first;
       } else {
-        _departmentController.clear();
+        _selectedDepartment = null;
       }
       if (_groupSuggestions.length == 1) {
         _groupController.text = _groupSuggestions.first;
       } else {
         _groupController.clear();
       }
+      // Clear selected employee when department changes
+      _selectedEmployeeId = null;
     });
   }
 
@@ -203,14 +218,14 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
         type: _equipmentType,
         mode: _equipmentMode,
         serialNo: _serialController.text.trim(),
-        department: _departmentController.text.trim(),
+        department: _selectedDepartment ?? '',
         installationDate: _installationDate ?? DateTime.now(), // Default to now if not set
         status: _statusController.text.trim(),
         service: _serviceStatus,
         purchasedCost: double.tryParse(_costController.text.trim()) ?? 0.0,
         hasWarranty: _hasWarranty,
         warrantyUpto: _hasWarranty ? _warrantyUptoDate : null,
-        assignedEmployeeId: null, // This would be set if an employee is assigned
+        assignedEmployeeId: _selectedEmployeeId, // Set from dropdown selection
         customerReceived: null, // This would be set if a customer received it
         collegeId: _college!.id, // Assuming _college is not null at this point
       );
@@ -239,13 +254,27 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: _selectedEquipment,
                 decoration: const InputDecoration(labelText: 'Equipment Name*'),
                 hint: const Text('Select Equipment'), // Added hint
+                selectedItemBuilder: (BuildContext context) {
+                  return _equipmentNames.map((String equipmentName) {
+                    return Text(
+                      equipmentName,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    );
+                  }).toList();
+                },
                 items: _equipmentNames.map((String equipmentName) {
                   return DropdownMenuItem<String>(
                     value: equipmentName,
-                    child: Text(equipmentName),
+                    child: Text(
+                      equipmentName,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
@@ -263,29 +292,84 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                   return null;
                 },
               ),
-              if (_departmentSuggestions.length > 1)
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Department*'),
-                  initialValue: _departmentController.text.isEmpty ? null : _departmentController.text,
-                  items: _departmentSuggestions.map((String department) {
-                    return DropdownMenuItem<String>(
-                      value: department,
-                      child: Text(department),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _departmentController.text = newValue!;
+              // Department dropdown from available departments
+              Consumer<DepartmentProvider>(
+                builder: (context, departmentProvider, _) {
+                  // Always show all departments for the college
+                  final departments = _college != null 
+                      ? departmentProvider.getDepartmentsForCollege(_college!.id)
+                      : <Department>[];
+                  
+                  // If equipment is selected and has department suggestions, 
+                  // pre-select if only one suggestion, but still show all departments
+                  if (_selectedEquipment != null && 
+                      _departmentSuggestions.isNotEmpty && 
+                      _departmentSuggestions.length == 1 &&
+                      _selectedDepartment == null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        setState(() {
+                          _selectedDepartment = _departmentSuggestions.first;
+                        });
+                      }
                     });
-                  },
-                  validator: (value) => value == null || value.isEmpty ? 'Please select a department' : null,
-                )
-              else
-                TextFormField(
-                  controller: _departmentController,
-                  decoration: const InputDecoration(labelText: 'Department*'),
-                  validator: (value) => value!.isEmpty ? 'Please enter a department' : null,
-                ),
+                  }
+                  
+                  if (departments.isEmpty) {
+                    return DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      value: null,
+                      decoration: const InputDecoration(
+                        labelText: 'Department*',
+                        hintText: 'No Departments Available',
+                      ),
+                      hint: const Text('No Departments Available'),
+                      items: const [],
+                      onChanged: null,
+                      enabled: false,
+                    );
+                  }
+                  
+                  return DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _selectedDepartment,
+                    decoration: const InputDecoration(labelText: 'Department*'),
+                    hint: const Text('Select Department'),
+                    selectedItemBuilder: (BuildContext context) {
+                      return departments.map((Department department) {
+                        return Text(
+                          department.name,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        );
+                      }).toList();
+                    },
+                    items: departments.map((Department department) {
+                      return DropdownMenuItem<String>(
+                        value: department.name,
+                        child: Text(
+                          department.name,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedDepartment = newValue;
+                        // Clear selected employee when department changes
+                        _selectedEmployeeId = null;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a department';
+                      }
+                      return null;
+                    },
+                  );
+                },
+              ),
               TextFormField(
                 controller: _statusController,
                 decoration: const InputDecoration(labelText: 'Status*'),
@@ -294,12 +378,26 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
               const SizedBox(height: 16),
               if (_groupSuggestions.length > 1)
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
                   decoration: const InputDecoration(labelText: 'Equipment Group'),
                   initialValue: _groupController.text.isEmpty ? null : _groupController.text,
+                  selectedItemBuilder: (BuildContext context) {
+                    return _groupSuggestions.map((String group) {
+                      return Text(
+                        group,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      );
+                    }).toList();
+                  },
                   items: _groupSuggestions.map((String group) {
                     return DropdownMenuItem<String>(
                       value: group,
-                      child: Text(group),
+                      child: Text(
+                        group,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     );
                   }).toList(),
                   onChanged: (String? newValue) {
@@ -324,29 +422,71 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: _equipmentType,
                 decoration: const InputDecoration(labelText: 'Equipment Type'),
+                selectedItemBuilder: (BuildContext context) {
+                  return ['Critical', 'Non-Critical'].map((label) {
+                    return Text(
+                      label,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    );
+                  }).toList();
+                },
                 items: ['Critical', 'Non-Critical'].map((label) => DropdownMenuItem(
                   value: label,
-                  child: Text(label),
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 )).toList(),
                 onChanged: (value) => setState(() => _equipmentType = value!),
               ),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: _equipmentMode,
                 decoration: const InputDecoration(labelText: 'Equipment Mode'),
+                selectedItemBuilder: (BuildContext context) {
+                  return ['Mercury', 'Electrical', 'Portable', 'Hydrolic'].map((label) {
+                    return Text(
+                      label,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    );
+                  }).toList();
+                },
                 items: ['Mercury', 'Electrical', 'Portable', 'Hydrolic'].map((label) => DropdownMenuItem(
                   value: label,
-                  child: Text(label),
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 )).toList(),
                 onChanged: (value) => setState(() => _equipmentMode = value!),
               ),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: _serviceStatus,
                 decoration: const InputDecoration(labelText: 'Service Status'),
+                selectedItemBuilder: (BuildContext context) {
+                  return ['Active', 'Non-Active'].map((label) {
+                    return Text(
+                      label,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    );
+                  }).toList();
+                },
                 items: ['Active', 'Non-Active'].map((label) => DropdownMenuItem(
                   value: label,
-                  child: Text(label),
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 )).toList(),
                 onChanged: (value) => setState(() => _serviceStatus = value!),
               ),
@@ -401,12 +541,95 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                   ],
                 ),
               const SizedBox(height: 24),
-              // Dropdown for assigned employee would go here
-              // You would fetch employees for the college and display them
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Assign to Employee (Optional)'),
-                items: const [], // Placeholder
-                onChanged: (value) {},
+              // Employee assignment dropdown - filtered by selected department
+              Builder(
+                key: ValueKey('employee-dropdown-${_selectedDepartment ?? 'no-dept'}'),
+                builder: (context) {
+                  final employeeProvider = Provider.of<EmployeeProvider>(context, listen: true);
+                  
+                  // Get employees for this college
+                  final collegeEmployees = _college != null
+                      ? employeeProvider.employees
+                          .where((emp) => emp.collegeId == _college!.id)
+                          .toList()
+                      : <Employee>[];
+                  
+                  // Check if department is selected (not null and not empty)
+                  final hasDepartmentSelected = _selectedDepartment != null && 
+                      _selectedDepartment!.isNotEmpty;
+                  
+                  // Filter employees by selected department
+                  final departmentEmployees = hasDepartmentSelected
+                      ? collegeEmployees
+                          .where((emp) => emp.department == _selectedDepartment)
+                          .toList()
+                      : <Employee>[];
+                  
+                  if (!hasDepartmentSelected) {
+                    return DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      value: null,
+                      decoration: const InputDecoration(
+                        labelText: 'Assign to Employee (Optional)',
+                        hintText: 'Select Department First',
+                      ),
+                      hint: const Text('Select Department First'),
+                      items: const [],
+                      onChanged: null,
+                      enabled: false,
+                    );
+                  }
+                  
+                  if (departmentEmployees.isEmpty) {
+                    return DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      value: null,
+                      decoration: const InputDecoration(
+                        labelText: 'Assign to Employee (Optional)',
+                        hintText: 'No Employees in Selected Department',
+                      ),
+                      hint: const Text('No Employees in Selected Department'),
+                      items: const [],
+                      onChanged: null,
+                      enabled: false,
+                    );
+                  }
+                  
+                  return DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _selectedEmployeeId,
+                    decoration: const InputDecoration(
+                      labelText: 'Assign to Employee (Optional)',
+                      hintText: 'Select Employee',
+                    ),
+                    hint: const Text('Select Employee'),
+                    selectedItemBuilder: (BuildContext context) {
+                      return departmentEmployees.map((Employee employee) {
+                        return Text(
+                          '${employee.name}${employee.role != null ? ' (${employee.role})' : ''}',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        );
+                      }).toList();
+                    },
+                    items: departmentEmployees.map((Employee employee) {
+                      return DropdownMenuItem<String>(
+                        value: employee.id,
+                        child: Text(
+                          '${employee.name}${employee.role != null ? ' (${employee.role})' : ''}',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedEmployeeId = newValue;
+                      });
+                    },
+                    validator: null, // Optional field
+                  );
+                },
               ),
               const SizedBox(height: 40),
             ],

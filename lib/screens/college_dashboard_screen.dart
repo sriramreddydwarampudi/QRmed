@@ -40,6 +40,7 @@ class _CollegeDashboardScreenState extends State<CollegeDashboardScreen> {
         userId: _currentCollege.id,
         userRole: 'college',
         collegeId: _currentCollege.id,
+        collegeName: _currentCollege.name,
       ),
     ];
   }

@@ -17,6 +17,9 @@ import '../providers/equipment_provider.dart';
 import '../providers/employee_provider.dart';
 import '../models/college.dart';
 import '../providers/college_provider.dart';
+import '../models/department.dart';
+import '../providers/department_provider.dart';
+import '../models/employee.dart';
 import '../data/requirements_data.dart';
 import '../widgets/management_list_widget.dart';
 import '../widgets/modern_details_dialog.dart';
@@ -53,6 +56,7 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
 
   List<String> _equipmentNames = []; // Added for dropdown
   String? _selectedEquipment; // Added for dropdown
+  String? _selectedDepartment; // Track selected department for employee dropdown
   College? _college; // Added to store college data
 
   Future<void> _exportStickerAsPng(Equipment equipment) async {
@@ -390,72 +394,69 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
     _verifiedDate = null;
     _generatedId = '';
     _selectedEquipment = null; // Clear selected equipment
+    _selectedDepartment = null; // Clear selected department
   }
 
   Future<void> _showAddEquipmentDialog() async { // Changed from _showAddProductDialog
-    // Check if employees exist (handle both null and empty)
+    // Fetch departments and employees
+    final departmentProvider = Provider.of<DepartmentProvider>(context, listen: false);
     final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
-    final employees = employeeProvider.employees.where((e) => e.collegeId == widget.collegeName).toList();
     
-    if (employees == null || employees.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ Create employees first! Equipment must be assigned to employees.'),
-          duration: Duration(seconds: 4),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+    await departmentProvider.fetchDepartmentsForCollege(widget.collegeName);
+    await employeeProvider.fetchEmployees();
 
     _clearForm();
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Add Equipment'), // Changed from Add Product
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: _buildEquipmentForm(), // Changed from _buildProductForm
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (!_formKey.currentState!.validate()) return;
-              final newEquipment = Equipment( // Changed from newProduct = Product
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                qrcode: 'temp_qr_${DateTime.now().millisecondsSinceEpoch}', // Placeholder
-                name: _equipmentNameController.text.trim(),
-                type: _equipmentTypeController.text.trim(),
-                group: _equipmentGroupController.text.trim(),
-                mode: _deviceTypeController.text.trim(),
-                manufacturer: _manufacturerController.text.trim(),
-                serialNo: _serialNoController.text.trim(),
-                department: _departmentController.text.trim(),
-                status: _statusController.text.trim(),
-                service: _serviceStatusController.text.trim(),
-                warrantyUpto: _warrantyController.text.isNotEmpty ? DateTime.tryParse(_warrantyController.text) : null,
-                purchasedCost: double.tryParse(_purchasedValueController.text) ?? 0.0,
-                installationDate: _purchasedDate ?? DateTime.now(),
-                assignedEmployeeId: _employeeAssignedController.text.trim(),
-                hasWarranty: _warrantyController.text.isNotEmpty,
-                collegeId: widget.collegeName,
-              );
-              await Provider.of<EquipmentProvider>(context, listen: false).addEquipment(newEquipment); // Changed from ProductProvider and addProduct
-              setState(() {});
-              Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Equipment added successfully.')), // Changed from Product added successfully
-              );
-            },
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('Add Equipment'), // Changed from Add Product
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: _buildEquipmentForm(dialogSetState: setDialogState), // Changed from _buildProductForm
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (!_formKey.currentState!.validate()) return;
+                  final newEquipment = Equipment( // Changed from newProduct = Product
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    qrcode: 'temp_qr_${DateTime.now().millisecondsSinceEpoch}', // Placeholder
+                    name: _equipmentNameController.text.trim(),
+                    type: _equipmentTypeController.text.trim(),
+                    group: _equipmentGroupController.text.trim(),
+                    mode: _deviceTypeController.text.trim(),
+                    manufacturer: _manufacturerController.text.trim(),
+                    serialNo: _serialNoController.text.trim(),
+                    department: _departmentController.text.trim(),
+                    status: _statusController.text.trim(),
+                    service: _serviceStatusController.text.trim(),
+                    warrantyUpto: _warrantyController.text.isNotEmpty ? DateTime.tryParse(_warrantyController.text) : null,
+                    purchasedCost: double.tryParse(_purchasedValueController.text) ?? 0.0,
+                    installationDate: _purchasedDate ?? DateTime.now(),
+                    assignedEmployeeId: _employeeAssignedController.text.trim(),
+                    hasWarranty: _warrantyController.text.isNotEmpty,
+                    collegeId: widget.collegeName,
+                  );
+                  await Provider.of<EquipmentProvider>(context, listen: false).addEquipment(newEquipment); // Changed from ProductProvider and addProduct
+                  setState(() {});
+                  Navigator.of(ctx).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Equipment added successfully.')), // Changed from Product added successfully
+                  );
+                },
             child: const Text('Add'),
           ),
         ],
+          );
+        },
       ),
     );
   }
@@ -652,20 +653,34 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
     }
   }
 
-  Widget _buildEquipmentForm() { // Changed from _buildProductForm
+  Widget _buildEquipmentForm({StateSetter? dialogSetState}) { // Changed from _buildProductForm
     return Form(
       key: _formKey,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           DropdownButtonFormField<String>(
+            isExpanded: true,
             initialValue: _selectedEquipment,
             decoration: const InputDecoration(labelText: 'Equipment Name*'),
             hint: const Text('Select Equipment'),
+            selectedItemBuilder: (BuildContext context) {
+              return _equipmentNames.map((String equipmentName) {
+                return Text(
+                  equipmentName,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                );
+              }).toList();
+            },
             items: _equipmentNames.map((String equipmentName) {
               return DropdownMenuItem<String>(
                 value: equipmentName,
-                child: Text(equipmentName),
+                child: Text(
+                  equipmentName,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               );
             }).toList(),
             onChanged: (String? newValue) {
@@ -702,17 +717,98 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
             controller: _serialNoController,
             decoration: const InputDecoration(labelText: 'Serial No'),
           ),
-          TextFormField(
-            controller: _departmentController,
-            decoration: const InputDecoration(labelText: 'Department'),
+          // Department dropdown from available departments
+          Consumer<DepartmentProvider>(
+            builder: (context, departmentProvider, _) {
+              // Get college ID from widget.collegeName
+              final departments = departmentProvider.getDepartmentsForCollege(widget.collegeName);
+              
+              if (departments.isEmpty) {
+                return DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  value: null,
+                  decoration: const InputDecoration(
+                    labelText: 'Department*',
+                    hintText: 'No Departments Available',
+                  ),
+                  hint: const Text('No Departments Available'),
+                  items: const [],
+                  onChanged: null,
+                );
+              }
+              
+              return DropdownButtonFormField<String>(
+                isExpanded: true,
+                value: _departmentController.text.isNotEmpty ? _departmentController.text : null,
+                decoration: const InputDecoration(labelText: 'Department*'),
+                hint: const Text('Select Department'),
+                selectedItemBuilder: (BuildContext context) {
+                  return departments.map((Department department) {
+                    return Text(
+                      department.name,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    );
+                  }).toList();
+                },
+                items: departments.map((Department department) {
+                  return DropdownMenuItem<String>(
+                    value: department.name,
+                    child: Text(
+                      department.name,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  debugPrint('🔵 [Add Equipment] Department changed to: $newValue');
+                  setState(() {
+                    _departmentController.text = newValue ?? '';
+                    _selectedDepartment = newValue; // Update state variable
+                    // Clear selected employee when department changes
+                    _employeeAssignedController.clear();
+                  });
+                  debugPrint('🔵 [Add Equipment] _selectedDepartment state updated to: $_selectedDepartment');
+                  // Also update dialog state if available
+                  dialogSetState?.call(() {
+                    _selectedDepartment = newValue;
+                    debugPrint('🔵 [Add Equipment] Dialog state updated, _selectedDepartment: $_selectedDepartment');
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a department';
+                  }
+                  return null;
+                },
+              );
+            },
           ),
           DropdownButtonFormField<String>(
+            isExpanded: true,
             initialValue: _statusController.text.isNotEmpty ? _statusController.text : null,
             decoration: const InputDecoration(labelText: 'Status*'),
             hint: const Text('Select Status'),
+            selectedItemBuilder: (BuildContext context) {
+              return ['Working', 'Not Working', 'Under Maintenance', 'Standby'].map((String status) {
+                return Text(
+                  status,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                );
+              }).toList();
+            },
             items: ['Working', 'Not Working', 'Under Maintenance', 'Standby']
                 .map((String status) {
-              return DropdownMenuItem<String>(value: status, child: Text(status));
+              return DropdownMenuItem<String>(
+                value: status,
+                child: Text(
+                  status,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              );
             }).toList(),
             onChanged: (String? newValue) {
               setState(() => _statusController.text = newValue ?? '');
@@ -745,9 +841,104 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
               if (date != null) setState(() => _purchasedDate = date);
             },
           ),
-          TextFormField(
-            controller: _employeeAssignedController,
-            decoration: const InputDecoration(labelText: 'Employee Assigned'),
+          // Employee assignment dropdown - filtered by selected department
+          Builder(
+            key: ValueKey('employee-dropdown-${_selectedDepartment ?? 'no-dept'}'),
+            builder: (context) {
+              debugPrint('🟢 [Add Equipment] Employee dropdown Builder rebuilding. _selectedDepartment: $_selectedDepartment');
+              return Consumer2<EmployeeProvider, DepartmentProvider>(
+                builder: (context, employeeProvider, departmentProvider, _) {
+                  debugPrint('🟡 [Add Equipment] Consumer2 rebuilding. _selectedDepartment: $_selectedDepartment');
+                  // Get employees for this college
+                  final collegeEmployees = employeeProvider.employees
+                      .where((emp) => emp.collegeId == widget.collegeName)
+                      .toList();
+                  
+                  debugPrint('🟡 [Add Equipment] Total college employees: ${collegeEmployees.length}');
+                  
+                  // Filter employees by selected department
+                  final selectedDept = _selectedDepartment ?? '';
+                  debugPrint('🟡 [Add Equipment] Selected department: "$selectedDept"');
+                  
+                  final departmentEmployees = selectedDept.isNotEmpty
+                      ? collegeEmployees
+                          .where((emp) => emp.department == selectedDept)
+                          .toList()
+                      : <Employee>[];
+                  
+                  debugPrint('🟡 [Add Equipment] Employees in selected department: ${departmentEmployees.length}');
+                  if (departmentEmployees.isNotEmpty) {
+                    debugPrint('🟡 [Add Equipment] Employee names: ${departmentEmployees.map((e) => e.name).join(", ")}');
+                  }
+                  
+                  if (selectedDept.isEmpty) {
+                    debugPrint('🔴 [Add Equipment] No department selected, showing "Select Department First"');
+                    return DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      value: null,
+                      decoration: const InputDecoration(
+                        labelText: 'Assign to Employee (Optional)',
+                        hintText: 'Select Department First',
+                      ),
+                      hint: const Text('Select Department First'),
+                      items: const [],
+                      onChanged: null,
+                    );
+                  }
+                  
+                  if (departmentEmployees.isEmpty) {
+                    debugPrint('🔴 [Add Equipment] No employees in department "$selectedDept", showing empty message');
+                    return DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      value: null,
+                      decoration: const InputDecoration(
+                        labelText: 'Assign to Employee (Optional)',
+                        hintText: 'No Employees in Selected Department',
+                      ),
+                      hint: const Text('No Employees in Selected Department'),
+                      items: const [],
+                      onChanged: null,
+                    );
+                  }
+                  
+                  debugPrint('🟢 [Add Equipment] Showing employee dropdown with ${departmentEmployees.length} employees');
+                  return DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _employeeAssignedController.text.isNotEmpty ? _employeeAssignedController.text : null,
+                    decoration: const InputDecoration(
+                      labelText: 'Assign to Employee (Optional)',
+                      hintText: 'Select Employee',
+                    ),
+                    hint: const Text('Select Employee'),
+                    selectedItemBuilder: (BuildContext context) {
+                      return departmentEmployees.map((Employee employee) {
+                        return Text(
+                          '${employee.name}${employee.role != null ? ' (${employee.role})' : ''}',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        );
+                      }).toList();
+                    },
+                    items: departmentEmployees.map((Employee employee) {
+                      return DropdownMenuItem<String>(
+                        value: employee.id,
+                        child: Text(
+                          '${employee.name}${employee.role != null ? ' (${employee.role})' : ''}',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _employeeAssignedController.text = newValue ?? '';
+                      });
+                    },
+                    validator: null, // Optional field
+                  );
+                },
+              );
+            },
           ),
           ListTile(
             title: Text(_verifiedDate == null ? 'Verified Date' : 'Verified: ${DateFormat('yyyy-MM-dd').format(_verifiedDate!)}'),
@@ -941,8 +1132,31 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
 
   @override
   Widget build(BuildContext context) {
-    final equipments = Provider.of<EquipmentProvider>(context).equipments
-        .where((p) => p.collegeId == widget.collegeName).toList();
+    final equipmentProvider = Provider.of<EquipmentProvider>(context);
+    final allEquipments = equipmentProvider.equipments;
+    
+    // Normalize collegeId comparison to handle whitespace
+    final equipments = allEquipments
+        .where((p) => p.collegeId.trim() == widget.collegeName.trim())
+        .toList();
+    
+    // Debug logging
+    print('🔍 [ManageEquipmentsScreen] College Name/ID: "${widget.collegeName}"');
+    print('🔍 [ManageEquipmentsScreen] Total equipments in provider: ${allEquipments.length}');
+    print('🔍 [ManageEquipmentsScreen] Filtered equipments for this college: ${equipments.length}');
+    
+    // Log all unique collegeIds to see what's in the database
+    final allCollegeIds = allEquipments.map((e) => e.collegeId.trim()).toSet();
+    print('🔍 [ManageEquipmentsScreen] All unique collegeIds in equipments: $allCollegeIds');
+    
+    // Log equipments that don't match
+    final nonMatching = allEquipments.where((p) => p.collegeId.trim() != widget.collegeName.trim()).toList();
+    if (nonMatching.isNotEmpty) {
+      print('🔍 [ManageEquipmentsScreen] Found ${nonMatching.length} equipments with different collegeId:');
+      for (var e in nonMatching.take(5)) {
+        print('   - Equipment: ${e.name}, collegeId: "${e.collegeId}" (trimmed: "${e.collegeId.trim()}")');
+      }
+    }
     
     for (var p in equipments) {
       if (!_stickerKeys.containsKey(p.id)) {

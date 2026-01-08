@@ -23,14 +23,16 @@ class CollegeEquipmentsWidget extends StatelessWidget {
     }
 
     return ManagementListWidget(
-      items: collegeEquipments.map((equipment) => ManagementListItem(
-        id: equipment.id,
-        title: equipment.name,
-        subtitle: '${equipment.serialNo} • ${equipment.department}',
-        icon: Icons.devices_other,
-        iconColor: const Color(0xFF2563EB),
-        badge: equipment.status,
-        badgeColor: equipment.status == 'Working' ? Colors.green : (equipment.status == 'Under Maintenance' ? Colors.orange : Colors.red),
+      items: collegeEquipments.map((equipment) {
+        final isNotWorking = equipment.status != 'Working';
+        return ManagementListItem(
+          id: equipment.id,
+          title: equipment.name,
+          subtitle: '${equipment.serialNo} • ${equipment.department}',
+          icon: Icons.devices_other,
+          iconColor: isNotWorking ? Colors.red : const Color(0xFF2563EB),
+          badge: equipment.status,
+          badgeColor: equipment.status == 'Working' ? Colors.green : (equipment.status == 'Under Maintenance' ? Colors.orange : Colors.red),
         actions: [
           ManagementAction(
             label: 'View',
@@ -76,7 +78,8 @@ class CollegeEquipmentsWidget extends StatelessWidget {
             },
           ),
         ],
-      )).toList(),
+        );
+      }).toList(),
       emptyMessage: 'No equipments found for this college.',
     );
   }

@@ -20,8 +20,8 @@ class _AddEditTicketScreenState extends State<AddEditTicketScreen> {
   void initState() {
     super.initState();
     if (widget.ticket != null) {
-      _titleController.text = widget.ticket!.title;
-      _descriptionController.text = widget.ticket!.description;
+      _titleController.text = widget.ticket!.title ?? '';
+      _descriptionController.text = widget.ticket!.description ?? '';
       _selectedStatus = widget.ticket!.status;
     }
   }
@@ -86,12 +86,26 @@ class _AddEditTicketScreenState extends State<AddEditTicketScreen> {
               const SizedBox(height: 16),
               if (widget.ticket != null)
                 DropdownButtonFormField<TicketStatus>(
+                  isExpanded: true,
                   initialValue: _selectedStatus,
                   decoration: const InputDecoration(labelText: 'Status'),
+                  selectedItemBuilder: (BuildContext context) {
+                    return TicketStatus.values.map((TicketStatus status) {
+                      return Text(
+                        status.toString().split('.').last,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      );
+                    }).toList();
+                  },
                   items: TicketStatus.values.map((TicketStatus status) {
                     return DropdownMenuItem<TicketStatus>(
                       value: status,
-                      child: Text(status.toString().split('.').last),
+                      child: Text(
+                        status.toString().split('.').last,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     );
                   }).toList(),
                   onChanged: (newValue) {

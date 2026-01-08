@@ -6,6 +6,7 @@ import 'package:supreme_institution/models/employee.dart';
 import '../providers/college_provider.dart';
 import '../providers/employee_provider.dart';
 import '../providers/customer_provider.dart';
+import '../services/auth_storage_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -108,6 +109,12 @@ class _LoginScreenState extends State<LoginScreen> {
     // Admin login
     if (email == 'supreme@supreme.com' && password == '1234567890') {
       setState(() => _isLoading = false);
+      // Save login credentials
+      await AuthStorageService.saveLoginCredentials(
+        email: email,
+        password: password,
+        userType: 'admin',
+      );
       Navigator.of(context).pushReplacementNamed('/admin');
       return;
     }
@@ -122,6 +129,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     if (college != null) {
       setState(() => _isLoading = false);
+      // Save login credentials
+      await AuthStorageService.saveLoginCredentials(
+        email: email,
+        password: password,
+        userType: 'college',
+        collegeId: college.id,
+      );
       Navigator.of(context).pushReplacementNamed(
         '/collegeDashboard',
         arguments: college.id,
@@ -157,6 +171,14 @@ class _LoginScreenState extends State<LoginScreen> {
         collegeName = 'College'; // College not found, use default
         debugPrint("Could not find college for employee. Using default name.");
       }
+      // Save login credentials
+      await AuthStorageService.saveLoginCredentials(
+        email: email,
+        password: password,
+        userType: 'employee',
+        collegeId: employee.collegeId,
+        collegeName: collegeName,
+      );
       Navigator.of(context).pushReplacementNamed('/employeeDashboard',
           arguments: {'employeeId': employee.id, 'collegeName': collegeName});
       return;
@@ -181,6 +203,14 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
       setState(() => _isLoading = false);
+      // Save login credentials
+      await AuthStorageService.saveLoginCredentials(
+        email: email,
+        password: password,
+        userType: 'customer',
+        collegeId: customer.collegeId,
+        collegeName: customer.collegeId,
+      );
       Navigator.of(context).pushReplacementNamed('/customerDashboard',
           arguments: {'name': customer.name, 'collegeName': customer.collegeId});
       return;

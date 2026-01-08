@@ -204,15 +204,29 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
               : Column(
                   children: [
                     DropdownButtonFormField<College>(
+                      isExpanded: true,
                       initialValue: _selectedCollege,
                       decoration: const InputDecoration(
                         labelText: 'Select College',
                         border: OutlineInputBorder(),
                       ),
+                      selectedItemBuilder: (BuildContext context) {
+                        return collegeProvider.colleges.map((college) {
+                          return Text(
+                            college.name,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          );
+                        }).toList();
+                      },
                       items: collegeProvider.colleges
                           .map((college) => DropdownMenuItem(
                                 value: college,
-                                child: Text(college.name),
+                                child: Text(
+                                  college.name,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
                               ))
                           .toList(),
                       onChanged: (College? newValue) {
@@ -231,20 +245,37 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
                     const SizedBox(height: 16),
                     if (_selectedCollege != null)
                       DropdownButtonFormField<String>(
+                        isExpanded: true,
                         initialValue: _selectedDepartment,
                         decoration: const InputDecoration(
                           labelText: 'Select Department',
                           border: OutlineInputBorder(),
                         ),
+                        selectedItemBuilder: (BuildContext context) {
+                          return [
+                            const Text('All', overflow: TextOverflow.ellipsis, maxLines: 1),
+                            ...departments.map((Department department) {
+                              return Text(
+                                department.name,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              );
+                            }),
+                          ];
+                        },
                         items: [
                           const DropdownMenuItem<String>(
                             value: 'All',
-                            child: Text('All'),
+                            child: Text('All', overflow: TextOverflow.ellipsis, maxLines: 1),
                           ),
                           ...departments.map((Department department) {
                             return DropdownMenuItem<String>(
                               value: department.name,
-                              child: Text(department.name),
+                              child: Text(
+                                department.name,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                             );
                           }),
                         ],

@@ -175,10 +175,20 @@ class _AddEditCollegeScreenState extends State<AddEditCollegeScreen> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
+                      isExpanded: true,
                       initialValue: _type,
+                      selectedItemBuilder: (BuildContext context) {
+                        return const ['Dental', 'MBBS'].map((String type) {
+                          return Text(
+                            type,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          );
+                        }).toList();
+                      },
                       items: const [
-                        DropdownMenuItem(value: 'Dental', child: Text('Dental')),
-                        DropdownMenuItem(value: 'MBBS', child: Text('MBBS')),
+                        DropdownMenuItem(value: 'Dental', child: Text('Dental', overflow: TextOverflow.ellipsis, maxLines: 1)),
+                        DropdownMenuItem(value: 'MBBS', child: Text('MBBS', overflow: TextOverflow.ellipsis, maxLines: 1)),
                       ],
                       onChanged: (val) {
                         setState(() {
@@ -192,17 +202,28 @@ class _AddEditCollegeScreenState extends State<AddEditCollegeScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<String>(
+                      isExpanded: true,
                       initialValue: _seats,
+                      selectedItemBuilder: (BuildContext context) {
+                        final seatsList = _type == 'Dental' ? ['40', '50', '60', '100'] : ['100', '200'];
+                        return seatsList.map((String seat) {
+                          return Text(
+                            seat,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          );
+                        }).toList();
+                      },
                       items: _type == 'Dental'
                           ? const [
-                              DropdownMenuItem(value: '40', child: Text('40')),
-                              DropdownMenuItem(value: '50', child: Text('50')),
-                              DropdownMenuItem(value: '60', child: Text('60')),
-                              DropdownMenuItem(value: '100', child: Text('100')),
+                              DropdownMenuItem(value: '40', child: Text('40', overflow: TextOverflow.ellipsis, maxLines: 1)),
+                              DropdownMenuItem(value: '50', child: Text('50', overflow: TextOverflow.ellipsis, maxLines: 1)),
+                              DropdownMenuItem(value: '60', child: Text('60', overflow: TextOverflow.ellipsis, maxLines: 1)),
+                              DropdownMenuItem(value: '100', child: Text('100', overflow: TextOverflow.ellipsis, maxLines: 1)),
                             ]
                           : const [
-                              DropdownMenuItem(value: '100', child: Text('100')),
-                              DropdownMenuItem(value: '200', child: Text('200')),
+                              DropdownMenuItem(value: '100', child: Text('100', overflow: TextOverflow.ellipsis, maxLines: 1)),
+                              DropdownMenuItem(value: '200', child: Text('200', overflow: TextOverflow.ellipsis, maxLines: 1)),
                             ],
                       onChanged: (val) {
                         setState(() {

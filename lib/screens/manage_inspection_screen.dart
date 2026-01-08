@@ -67,12 +67,26 @@ class _ManageInspectionScreenState extends State<ManageInspectionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DropdownButtonFormField<College>(
+              isExpanded: true,
               initialValue: _selectedCollege,
               decoration: const InputDecoration(labelText: 'Select College'),
+              selectedItemBuilder: (BuildContext context) {
+                return collegeProvider.colleges.map((college) {
+                  return Text(
+                    college.name,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  );
+                }).toList();
+              },
               items: collegeProvider.colleges.map((college) {
                 return DropdownMenuItem<College>(
                   value: college,
-                  child: Text(college.name),
+                  child: Text(
+                    college.name,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 );
               }).toList(),
               onChanged: (college) {
@@ -86,12 +100,26 @@ class _ManageInspectionScreenState extends State<ManageInspectionScreen> {
             const SizedBox(height: 16),
             if (_selectedCollege != null)
               DropdownButtonFormField<Department>(
+                isExpanded: true,
                 initialValue: _selectedDepartment,
                 decoration: const InputDecoration(labelText: 'Select Department'),
+                selectedItemBuilder: (BuildContext context) {
+                  return departmentProvider.getDepartmentsForCollege(_selectedCollege!.id).map((department) {
+                    return Text(
+                      department.name,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    );
+                  }).toList();
+                },
                 items: departmentProvider.getDepartmentsForCollege(_selectedCollege!.id).map((department) {
                   return DropdownMenuItem<Department>(
                     value: department,
-                    child: Text(department.name),
+                    child: Text(
+                      department.name,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   );
                 }).toList(),
                 onChanged: (department) {
@@ -104,21 +132,25 @@ class _ManageInspectionScreenState extends State<ManageInspectionScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                ElevatedButton(
-                  onPressed: _selectedCollege != null && !_isLoading ? _runInspection : null,
-                  child: _isLoading ? const CircularProgressIndicator() : const Text('Perform Inspection'),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _selectedCollege != null && !_isLoading ? _runInspection : null,
+                    child: _isLoading ? const CircularProgressIndicator() : const Text('Perform Inspection'),
+                  ),
                 ),
                 const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ManageRequirementsScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text('Manage Requirements'),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ManageRequirementsScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text('Manage Requirements'),
+                  ),
                 ),
               ],
             ),

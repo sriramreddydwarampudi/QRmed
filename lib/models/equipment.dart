@@ -42,6 +42,9 @@ class Equipment {
   });
 
   factory Equipment.fromJson(Map<String, dynamic> json) {
+    // Normalize status by trimming whitespace to ensure consistent filtering
+    String status = (json['status'] as String? ?? '').trim();
+    
     return Equipment(
       id: json['id'] as String,
       qrcode: json['qrcode'] as String,
@@ -53,7 +56,7 @@ class Equipment {
       serialNo: json['serialNo'] as String,
       department: json['department'] as String,
       installationDate: (json['installationDate'] as Timestamp).toDate(),
-      status: json['status'] as String,
+      status: status,
       service: json['service'] as String,
       purchasedCost: (json['purchasedCost'] as num).toDouble(),
       hasWarranty: json['hasWarranty'] as bool,
@@ -87,5 +90,59 @@ class Equipment {
       'customerReceived': customerReceived,
       'collegeId': collegeId,
     };
+  }
+
+  Equipment copyWith({
+    String? id,
+    String? qrcode,
+    String? name,
+    String? type,
+    String? group,
+    String? mode,
+    String? manufacturer,
+    String? serialNo,
+    String? department,
+    String? status,
+    String? service,
+    DateTime? warrantyUpto,
+    double? purchasedCost,
+    DateTime? installationDate,
+    String? assignedEmployeeId,
+    bool? hasWarranty,
+    String? customerReceived,
+    String? collegeId,
+  }) {
+    return Equipment(
+      id: id ?? this.id,
+      qrcode: qrcode ?? this.qrcode,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      group: group ?? this.group,
+      mode: mode ?? this.mode,
+      manufacturer: manufacturer ?? this.manufacturer,
+      serialNo: serialNo ?? this.serialNo,
+      department: department ?? this.department,
+      status: status ?? this.status,
+      service: service ?? this.service,
+      warrantyUpto: warrantyUpto ?? this.warrantyUpto,
+      purchasedCost: purchasedCost ?? this.purchasedCost,
+      installationDate: installationDate ?? this.installationDate,
+      assignedEmployeeId: assignedEmployeeId ?? this.assignedEmployeeId,
+      hasWarranty: hasWarranty ?? this.hasWarranty,
+      customerReceived: customerReceived ?? this.customerReceived,
+      collegeId: collegeId ?? this.collegeId,
+    );
+  }
+
+  /// Returns true if the equipment is working, false otherwise
+  /// Handles status normalization (trimming whitespace) for consistent checking
+  bool get isWorking {
+    return status.trim() == 'Working';
+  }
+
+  /// Returns true if the equipment is not working
+  bool get isNotWorking {
+    final normalizedStatus = status.trim();
+    return normalizedStatus.isNotEmpty && normalizedStatus != 'Working';
   }
 }

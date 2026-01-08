@@ -45,19 +45,31 @@ class _ManageRequirementsScreenState extends State<ManageRequirementsScreen> {
               _requirements[courseName]!;
 
           return ExpansionTile(
-            title: Text(courseName),
+            title: Text(
+              courseName,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
             children: courseData.keys.map((capacity) {
               Map<String, Map<String, dynamic>> capacityData =
                   courseData[capacity]!;
 
               return ExpansionTile(
-                title: Text('Capacity: $capacity'),
+                title: Text(
+                  'Capacity: $capacity',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
                 children: capacityData.keys.map((department) {
                   Map<String, dynamic> departmentData =
                       capacityData[department]!;
 
                   return ExpansionTile(
-                    title: Text(department),
+                    title: Text(
+                      department,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                     children: [
                       _buildItemList(
                         'Equipments',
@@ -91,7 +103,13 @@ class _ManageRequirementsScreenState extends State<ManageRequirementsScreen> {
           ...items.keys.map((item) {
             return Row(
               children: [
-                Expanded(child: Text(item)),
+                Expanded(
+                  child: Text(
+                    item,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
                 SizedBox(
                   width: 50,
                   child: TextFormField(

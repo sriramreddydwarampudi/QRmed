@@ -155,12 +155,26 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: _selectedDepartment,
                 decoration: const InputDecoration(labelText: 'Department'),
+                selectedItemBuilder: (BuildContext context) {
+                  return departments.map((Department department) {
+                    return Text(
+                      department.name,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    );
+                  }).toList();
+                },
                 items: departments.map((Department department) {
                   return DropdownMenuItem<String>(
                     value: department.name,
-                    child: Text(department.name),
+                    child: Text(
+                      department.name,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   );
                 }).toList(),
                 onChanged: (newValue) {
@@ -177,12 +191,26 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: _selectedRole,
                 decoration: const InputDecoration(labelText: 'Role'),
+                selectedItemBuilder: (BuildContext context) {
+                  return _availableRoles.map((String role) {
+                    return Text(
+                      role,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    );
+                  }).toList();
+                },
                 items: _availableRoles.map((String role) {
                   return DropdownMenuItem<String>(
                     value: role,
-                    child: Text(role),
+                    child: Text(
+                      role,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   );
                 }).toList(),
                 onChanged: (newValue) {

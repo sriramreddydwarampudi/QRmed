@@ -21,6 +21,7 @@ import 'providers/requirements_provider.dart'; // Import RequirementsProvider
 import 'package:supreme_institution/providers/department_provider.dart'; // Import DepartmentProvider
 import 'package:supreme_institution/providers/ticket_provider.dart'; // Import TicketProvider
 import 'package:supreme_institution/services/auth_service.dart'; // Import AuthService
+import 'package:supreme_institution/services/auth_storage_service.dart'; // Import AuthStorageService
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,6 +52,7 @@ class MyApp extends StatelessWidget {
       child: Builder(builder: (context) {
         return MaterialApp(
           title: 'QRmed',
+          home: const AuthWrapper(),
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(
@@ -95,9 +97,7 @@ class MyApp extends StatelessWidget {
               contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
             ),
           ),
-          initialRoute: '/',
           routes: {
-            '/': (context) => const LoginScreen(),
             '/admin': (context) => const AdminDashboardScreen(),
             '/manageColleges': (context) => const ManageCollegesScreen(),
             '/manageInspection': (context) => const ManageInspectionScreen(),
@@ -144,5 +144,83 @@ class MyApp extends StatelessWidget {
         );
       }),
     );
+  }
+}
+
+// Wrapper widget to check for saved login credentials
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  bool _isChecking = true;
+  Widget _initialRoute = const LoginScreen();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSavedCredentials();
+  }
+
+  Future<void> _checkSavedCredentials() async {
+    // First, fetch colleges to ensure data is available
+    final collegeProvider = Provider.of<CollegeProvider>(context, listen: false);
+    await collegeProvider.fetchColleges();
+    
+    final savedCredentials = await AuthStorageService.getSavedCredentials();
+    
+    if (savedCredentials != null) {
+      final userType = savedCredentials['userType']!;
+      
+      // Navigate based on user type
+      if (userType == 'admin') {
+        _initialRoute = const AdminDashboardScreen();
+      } else if (userType == 'college') {
+        final collegeId = savedCredentials['collegeId'] ?? '';
+        try {
+          final college = collegeProvider.colleges.firstWhere(
+            (c) => c.id == collegeId,
+          );
+          _initialRoute = CollegeDashboardScreen(college: college);
+        } catch (_) {
+          // College not found, return to login
+          _initialRoute = const LoginScreen();
+        }
+      } else if (userType == 'employee') {
+        final employeeId = savedCredentials['email']!;
+        final collegeName = savedCredentials['collegeName'] ?? 'College';
+        _initialRoute = EmployeeDashboardScreen(
+          employeeId: employeeId,
+          collegeName: collegeName,
+        );
+      } else if (userType == 'customer') {
+        final name = savedCredentials['collegeName'] ?? 'Customer';
+        final collegeId = savedCredentials['collegeId'] ?? '';
+        _initialRoute = CustomerDashboardScreen(
+          customerName: name,
+          collegeName: collegeId,
+        );
+      }
+    }
+    
+    if (mounted) {
+      setState(() {
+        _isChecking = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isChecking) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    
+    return _initialRoute;
   }
 }

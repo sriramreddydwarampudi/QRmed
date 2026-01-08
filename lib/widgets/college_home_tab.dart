@@ -27,14 +27,28 @@ class CollegeHomeTab extends StatelessWidget {
     final inspectionProvider = Provider.of<InspectionProvider>(context, listen: false); // Access InspectionProvider
     final departmentProvider = Provider.of<DepartmentProvider>(context, listen: false);
 
-    // Filtering data based on collegeId
-    final totalEquipments = equipmentProvider.equipments.where((e) => e.collegeId == college.id).length;
-    final totalEmployees = employeeProvider.employees.where((e) => e.collegeId == college.id).length;
-    final totalCustomers = customerProvider.customers.where((c) => c.collegeId == college.id).length;
-     final totalDepartments = departmentProvider.getDepartmentsForCollege(college.id).length;
-    final notWorkingEquipments = equipmentProvider.equipments
-        .where((e) => e.collegeId == college.id && e.status != 'Working')
+    // Filtering data based on collegeId (normalize to handle whitespace)
+    final collegeEquipments = equipmentProvider.equipments
+        .where((e) => e.collegeId.trim() == college.id.trim())
+        .toList();
+    final totalEquipments = collegeEquipments.length;
+    
+    final totalEmployees = employeeProvider.employees.where((e) => e.collegeId.trim() == college.id.trim()).length;
+    final totalCustomers = customerProvider.customers.where((c) => c.collegeId.trim() == college.id.trim()).length;
+    final totalDepartments = departmentProvider.getDepartmentsForCollege(college.id).length;
+    final notWorkingEquipments = collegeEquipments
+        .where((e) => e.isNotWorking)
         .length;
+    
+    // Debug logging
+    print('🔍 [CollegeHomeTab] College ID: "${college.id}" (trimmed: "${college.id.trim()}")');
+    print('🔍 [CollegeHomeTab] College Name: "${college.name}"');
+    print('🔍 [CollegeHomeTab] Total equipments in provider: ${equipmentProvider.equipments.length}');
+    print('🔍 [CollegeHomeTab] Filtered equipments for this college: $totalEquipments');
+    
+    // Log all unique collegeIds
+    final allCollegeIds = equipmentProvider.equipments.map((e) => e.collegeId.trim()).toSet();
+    print('🔍 [CollegeHomeTab] All unique collegeIds in equipments: $allCollegeIds');
 
     void showInspectionResultDialog(InspectionResult result) {
       showDialog(
@@ -97,12 +111,26 @@ class CollegeHomeTab extends StatelessWidget {
               return AlertDialog(
                 title: const Text('Select Department'),
                 content: DropdownButtonFormField<Department>(
+                  isExpanded: true,
                   initialValue: selectedDepartment,
                   decoration: const InputDecoration(labelText: 'Department'),
+                  selectedItemBuilder: (BuildContext context) {
+                    return departmentProvider.getDepartmentsForCollege(college.id).map((department) {
+                      return Text(
+                        department.name,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      );
+                    }).toList();
+                  },
                   items: departmentProvider.getDepartmentsForCollege(college.id).map((department) {
                     return DropdownMenuItem<Department>(
                       value: department,
-                      child: Text(department.name),
+                      child: Text(
+                        department.name,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     );
                   }).toList(),
                   onChanged: (department) {

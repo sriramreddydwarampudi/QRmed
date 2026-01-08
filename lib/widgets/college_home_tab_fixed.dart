@@ -99,12 +99,26 @@ class CollegeHomeTab extends StatelessWidget {
               return AlertDialog(
                 title: const Text('Select Department'),
                 content: DropdownButtonFormField<Department>(
+                  isExpanded: true,
                   initialValue: selectedDepartment,
                   decoration: const InputDecoration(labelText: 'Department'),
+                  selectedItemBuilder: (BuildContext context) {
+                    return departmentProvider.getDepartmentsForCollege(college.id).map((department) {
+                      return Text(
+                        department.name,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      );
+                    }).toList();
+                  },
                   items: departmentProvider.getDepartmentsForCollege(college.id).map((department) {
                     return DropdownMenuItem<Department>(
                       value: department,
-                      child: Text(department.name),
+                      child: Text(
+                        department.name,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     );
                   }).toList(),
                   onChanged: (department) {

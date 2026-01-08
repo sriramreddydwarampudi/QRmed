@@ -41,12 +41,27 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
               title: const Text('Edit Department',
                   style: TextStyle(color: Colors.blue)),
               content: DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: newSelectedDepartment,
+                selectedItemBuilder: (BuildContext context) {
+                  return departmentNames.map((String deptName) {
+                    return Text(
+                      deptName,
+                      style: const TextStyle(color: Colors.blue),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    );
+                  }).toList();
+                },
                 items: departmentNames.map((String deptName) {
                   return DropdownMenuItem<String>(
                     value: deptName,
-                    child:
-                        Text(deptName, style: const TextStyle(color: Colors.blue)),
+                    child: Text(
+                      deptName,
+                      style: const TextStyle(color: Colors.blue),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
@@ -145,16 +160,8 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.college.name),
-            Text(
-              widget.college.type,
-              style: const TextStyle(fontSize: 14),
-            ),
-          ],
-        ),
+        title: const Text('Manage Departments'),
+        elevation: 0,
       ),
       body: Column(
         children: [
@@ -166,12 +173,27 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
+                      isExpanded: true,
                       initialValue: _selectedDepartment,
+                      selectedItemBuilder: (BuildContext context) {
+                        return departmentNames.map((String department) {
+                          return Text(
+                            department,
+                            style: const TextStyle(color: Colors.blue),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          );
+                        }).toList();
+                      },
                       items: departmentNames.map((String department) {
                         return DropdownMenuItem<String>(
                           value: department,
-                          child: Text(department,
-                              style: const TextStyle(color: Colors.blue)),
+                          child: Text(
+                            department,
+                            style: const TextStyle(color: Colors.blue),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {

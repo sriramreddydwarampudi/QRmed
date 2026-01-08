@@ -345,7 +345,18 @@ class _ActionButton extends StatelessWidget {
           ),
           child: IconButton(
             icon: Icon(icon, color: color, size: 22),
-            onPressed: onPressed,
+            onPressed: () {
+              print('🔴 [_ActionButton] Button pressed: $label');
+              debugPrint('🔴 [_ActionButton] Button pressed: $label');
+              try {
+                onPressed();
+                print('🔴 [_ActionButton] onPressed callback completed for: $label');
+              } catch (e, stackTrace) {
+                print('🔴 [_ActionButton] ERROR in onPressed for $label: $e');
+                print('🔴 [_ActionButton] Stack trace: $stackTrace');
+                rethrow;
+              }
+            },
             constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
           ),
         ),

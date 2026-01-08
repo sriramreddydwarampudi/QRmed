@@ -24,6 +24,117 @@ class _ManageCollegesScreenState extends State<ManageCollegesScreen> {
     setState(() {});
   }
 
+  Future<void> _handleDeleteCollege(College c) async {
+    print('🔴🔴🔴 [_handleDeleteCollege] Starting delete process for: ${c.id} - ${c.name}');
+    debugPrint('🔴🔴🔴 [_handleDeleteCollege] Starting delete process for: ${c.id} - ${c.name}');
+    
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        print('🔴🔴🔴 [DIALOG] Showing delete confirmation dialog');
+        return AlertDialog(
+          title: const Text('Delete College'),
+          content: const Text(
+              'Are you sure you want to delete this college?\n\n'
+              'This will also delete all related data:\n'
+              '• All equipments\n'
+              '• All employees\n'
+              '• All customers\n'
+              '• All departments\n'
+              '• All tickets\n\n'
+              'This action cannot be undone!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                print('🔴🔴🔴 [DIALOG] Cancel button clicked');
+                Navigator.of(ctx).pop(false);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                print('🔴🔴🔴 [DIALOG] Delete button clicked in dialog');
+                Navigator.of(ctx).pop(true);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+    
+    print('🔴🔴🔴 [DIALOG RESULT] Confirm result: $confirm');
+    debugPrint('🔴🔴🔴 [DIALOG RESULT] Confirm result: $confirm');
+    
+    if (confirm == true) {
+      print('🔴🔴🔴 [CONFIRMED] User confirmed deletion, proceeding...');
+      debugPrint('🔴🔴🔴 [CONFIRMED] User confirmed deletion, proceeding...');
+      
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      try {
+        print('🔴🔴🔴 [DELETE START] Attempting to delete college: ${c.id} (${c.name})');
+        debugPrint('🔴🔴🔴 [DELETE START] Attempting to delete college: ${c.id} (${c.name})');
+        
+        await Provider.of<CollegeProvider>(context, listen: false)
+            .deleteCollege(c.id);
+        
+        print('🔴🔴🔴 [DELETE SUCCESS] College deleted, refreshing list...');
+        debugPrint('🔴🔴🔴 [DELETE SUCCESS] College deleted, refreshing list...');
+        await _fetchColleges();
+
+        // Close loading indicator
+        if (mounted) Navigator.of(context).pop();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('College and all related data deleted successfully.'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } catch (e, stackTrace) {
+        print('🔴🔴🔴 [DELETE ERROR] Error deleting college: $e');
+        print('🔴🔴🔴 [DELETE ERROR] Stack trace: $stackTrace');
+        debugPrint('🔴🔴🔴 [DELETE ERROR] Error deleting college: $e');
+        debugPrint('🔴🔴🔴 [DELETE ERROR] Stack trace: $stackTrace');
+        
+        // Close loading indicator
+        if (mounted) Navigator.of(context).pop();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error deleting college: ${e.toString()}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: 'Dismiss',
+                textColor: Colors.white,
+                onPressed: () {},
+              ),
+            ),
+          );
+        }
+      }
+    } else {
+      print('🔴🔴🔴 [CANCELLED] User cancelled deletion');
+      debugPrint('🔴🔴🔴 [CANCELLED] User cancelled deletion');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colleges = Provider.of<CollegeProvider>(context).colleges;
@@ -103,34 +214,10 @@ class _ManageCollegesScreenState extends State<ManageCollegesScreen> {
                     label: 'Delete',
                     icon: Icons.delete,
                     color: const Color(0xFFDC2626),
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Delete College'),
-                          content: const Text(
-                              'Are you sure you want to delete this college?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(false),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(true),
-                              child: const Text('Delete'),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (confirm == true) {
-                        await Provider.of<CollegeProvider>(context,
-                                listen: false)
-                            .deleteCollege(c.id);
-                        await _fetchColleges();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('College deleted.')),
-                        );
-                      }
+                    onPressed: () {
+                      print('🔴🔴🔴 [DELETE BUTTON CLICKED] Delete button pressed for college: ${c.id} - ${c.name}');
+                      debugPrint('🔴🔴🔴 [DELETE BUTTON CLICKED] Delete button pressed for college: ${c.id} - ${c.name}');
+                      _handleDeleteCollege(c);
                     },
                   ),
                 ],

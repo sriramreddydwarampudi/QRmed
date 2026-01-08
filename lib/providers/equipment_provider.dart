@@ -27,12 +27,20 @@ class EquipmentProvider with ChangeNotifier {
   }
 
   Future<void> addEquipment(Equipment equipment) async { // Changed from addProduct
-    await _equipmentCollection.doc(equipment.id).set(equipment.toJson());
+    // Normalize status before saving to ensure consistency
+    final normalizedEquipment = equipment.copyWith(
+      status: equipment.status.trim(),
+    );
+    await _equipmentCollection.doc(normalizedEquipment.id).set(normalizedEquipment.toJson());
     await fetchEquipments(); // Changed from fetchProducts
   }
 
   Future<void> updateEquipment(String id, Equipment equipment) async { // Changed from updateProduct
-    await _equipmentCollection.doc(id).update(equipment.toJson());
+    // Normalize status before saving to ensure consistency
+    final normalizedEquipment = equipment.copyWith(
+      status: equipment.status.trim(),
+    );
+    await _equipmentCollection.doc(id).update(normalizedEquipment.toJson());
     await fetchEquipments(); // Changed from fetchProducts
   }
 
