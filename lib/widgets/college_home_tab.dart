@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supreme_institution/models/college.dart';
-import 'package:supreme_institution/models/visitor.dart';
 import 'package:supreme_institution/models/department.dart';
 import 'package:supreme_institution/models/employee.dart';
 import 'package:supreme_institution/models/inspection_result.dart'; // Import InspectionResult
-import 'package:supreme_institution/providers/visitor_provider.dart';
 import 'package:supreme_institution/providers/department_provider.dart';
 import 'package:supreme_institution/providers/employee_provider.dart';
 import 'package:supreme_institution/providers/equipment_provider.dart';
@@ -17,8 +15,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 class CollegeHomeTab extends StatefulWidget {
   final College college;
+  final Function(int)? onTabSelected;
 
-  const CollegeHomeTab({super.key, required this.college});
+  const CollegeHomeTab({super.key, required this.college, this.onTabSelected});
 
   @override
   State<CollegeHomeTab> createState() => _CollegeHomeTabState();
@@ -36,7 +35,6 @@ class _CollegeHomeTabState extends State<CollegeHomeTab> {
   Future<void> _initializeAppProviders() async {
     final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
     final equipmentProvider = Provider.of<EquipmentProvider>(context, listen: false);
-    final visitorProvider = Provider.of<VisitorProvider>(context, listen: false);
     final departmentProvider = Provider.of<DepartmentProvider>(context, listen: false);
     final inspectionProvider = Provider.of<InspectionProvider>(context, listen: false); // Ensure this is also fetched if needed
     final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
@@ -47,7 +45,6 @@ class _CollegeHomeTabState extends State<CollegeHomeTab> {
     await Future.wait([
       employeeProvider.fetchEmployees(),
       equipmentProvider.fetchEquipments(),
-      visitorProvider.fetchVisitors(),
       // For CollegeHomeTab, departments are filtered by college.id, so fetch all departments once and then filter.
       // Or if there's a specific fetchDepartmentsForCollege, use that.
       // Assuming fetchDepartments will fetch all departments and then filter in build, or fetchDepartmentsForCollege is available.
@@ -249,7 +246,6 @@ class _CollegeHomeTabState extends State<CollegeHomeTab> {
     // Fetching providers to get data
     final employeeProvider = Provider.of<EmployeeProvider>(context);
     final equipmentProvider = Provider.of<EquipmentProvider>(context);
-    final visitorProvider = Provider.of<VisitorProvider>(context);
     final inspectionProvider = Provider.of<InspectionProvider>(context, listen: false); // Still listen: false if not rebuilding on inspection changes
     final departmentProvider = Provider.of<DepartmentProvider>(context);
 
@@ -260,7 +256,6 @@ class _CollegeHomeTabState extends State<CollegeHomeTab> {
     final totalEquipments = collegeEquipments.length;
     
     final totalEmployees = employeeProvider.employees.where((e) => e.collegeId.trim() == widget.college.id.trim()).length;
-    final totalVisitors = visitorProvider.visitors.where((v) => v.collegeId.trim() == widget.college.id.trim()).length;
     final totalDepartments = departmentProvider.getDepartmentsForCollege(widget.college.id).length;
     final notWorkingEquipments = collegeEquipments
         .where((e) => e.isNotWorking)
@@ -272,7 +267,6 @@ class _CollegeHomeTabState extends State<CollegeHomeTab> {
     print('🔍 [CollegeHomeTab] Total equipments in provider: ${equipmentProvider.equipments.length}');
     print('🔍 [CollegeHomeTab] Filtered equipments for this college: $totalEquipments');
     print('🔍 [CollegeHomeTab] Total employees for this college: $totalEmployees');
-    print('🔍 [CollegeHomeTab] Total visitors for this college: $totalVisitors');
     print('🔍 [CollegeHomeTab] Total departments for this college: $totalDepartments');
 
     // Log all unique collegeIds
@@ -300,30 +294,28 @@ class _CollegeHomeTabState extends State<CollegeHomeTab> {
                     title: 'Total Equipments',
                     icon: Icons.devices_other,
                     color: Colors.green,
+                    onTap: () => widget.onTabSelected?.call(1),
                   ),
               DashboardTile(
                 count: totalDepartments.toString(),
                 title: 'Total Departments',
                 icon: Icons.business,
                 color: Colors.purple,
+                onTap: () => widget.onTabSelected?.call(3),
               ),
               DashboardTile(
                 count: totalEmployees.toString(),
                 title: 'Total Employees',
                 icon: Icons.people,
                 color: Colors.blue,
-              ),
-              DashboardTile(
-                count: totalVisitors.toString(),
-                title: 'Total Visitors',
-                icon: Icons.person_pin,
-                color: Colors.teal,
+                onTap: () => widget.onTabSelected?.call(2),
               ),
               DashboardTile(
                 count: notWorkingEquipments.toString(),
                 title: 'Equipments Not Working',
                 icon: Icons.build,
                 color: Colors.red,
+                onTap: () => widget.onTabSelected?.call(1),
               ),
             ],
           ),

@@ -113,13 +113,13 @@ class _AdminEquipmentsNotWorkingScreenState extends State<AdminEquipmentsNotWork
         'ID', 'Name', 'College', 'Type', 'Group', 'Mode', 'Manufacturer',
         'Serial Number', 'Department', 'Status', 'Service Status',
         'Warranty Upto', 'Purchased Cost', 'Installation Date',
-        'Employee Assigned', 'Customer Received', 'Remarks', 'Need of Spares',
+        'Employee Assigned', 'Remarks', 'Need of Spares',
       ];
       sheetObject.appendRow(headers.map((h) => TextCellValue(h)).toList());
 
       // Set column widths for Remarks and Need of Spares
+      sheetObject.setColumnWidth(15, 40);
       sheetObject.setColumnWidth(16, 40);
-      sheetObject.setColumnWidth(17, 40);
 
       // Add data rows
       for (var equipment in notWorkingEquipments) {
@@ -151,7 +151,6 @@ class _AdminEquipmentsNotWorkingScreenState extends State<AdminEquipmentsNotWork
           DoubleCellValue(equipment.purchasedCost),
           TextCellValue(DateFormat('yyyy-MM-dd').format(equipment.installationDate)),
           TextCellValue(equipment.assignedEmployeeId ?? '-'),
-          TextCellValue(equipment.customerReceived ?? '-'),
           TextCellValue(''), // Remarks column
           TextCellValue(''), // Need of Spares column
         ]);

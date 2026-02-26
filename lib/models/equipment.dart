@@ -17,7 +17,6 @@ class Equipment {
   bool hasWarranty;
   DateTime? warrantyUpto;
   String? assignedEmployeeId;
-  String? customerReceived;
   String collegeId;
 
   Equipment({
@@ -37,7 +36,6 @@ class Equipment {
     required this.hasWarranty,
     this.warrantyUpto,
     this.assignedEmployeeId,
-    this.customerReceived,
     required this.collegeId,
   });
 
@@ -64,7 +62,6 @@ class Equipment {
           ? (json['warrantyUpto'] as Timestamp).toDate()
           : null,
       assignedEmployeeId: json['assignedEmployeeId'] as String?,
-      customerReceived: json['customerReceived'] as String?,
       collegeId: json['collegeId'] as String,
     );
   }
@@ -87,7 +84,6 @@ class Equipment {
       'hasWarranty': hasWarranty,
       'warrantyUpto': warrantyUpto != null ? Timestamp.fromDate(warrantyUpto!) : null,
       'assignedEmployeeId': assignedEmployeeId,
-      'customerReceived': customerReceived,
       'collegeId': collegeId,
     };
   }
@@ -109,7 +105,6 @@ class Equipment {
     DateTime? installationDate,
     String? assignedEmployeeId,
     bool? hasWarranty,
-    String? customerReceived,
     String? collegeId,
   }) {
     return Equipment(
@@ -129,7 +124,6 @@ class Equipment {
       installationDate: installationDate ?? this.installationDate,
       assignedEmployeeId: assignedEmployeeId ?? this.assignedEmployeeId,
       hasWarranty: hasWarranty ?? this.hasWarranty,
-      customerReceived: customerReceived ?? this.customerReceived,
       collegeId: collegeId ?? this.collegeId,
     );
   }

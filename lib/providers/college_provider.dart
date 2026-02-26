@@ -50,7 +50,7 @@ class CollegeProvider with ChangeNotifier {
   }
 
   /// Deletes a college and all its related data (cascade delete)
-  /// This includes: equipments, employees, customers, departments
+  /// This includes: equipments, employees, departments
   Future<void> deleteCollege(String id) async {
     print('🔴 [deleteCollege] Starting deletion for college ID: $id');
     debugPrint('🔴 [deleteCollege] Starting deletion for college ID: $id');
@@ -180,24 +180,6 @@ class CollegeProvider with ChangeNotifier {
         }
         await batch2.commit();
         debugPrint('✅ [_deleteAllRelatedDataForCollege] Deleted ${employeesSnapshot.docs.length} employees');
-      }
-
-      // Delete all customers for this college
-      debugPrint('🔍 [_deleteAllRelatedDataForCollege] Fetching customers...');
-      final customersSnapshot = await FirebaseFirestore.instance
-          .collection('customers')
-          .where('collegeId', isEqualTo: collegeId)
-          .get();
-      debugPrint('📊 [_deleteAllRelatedDataForCollege] Found ${customersSnapshot.docs.length} customers');
-      
-      if (customersSnapshot.docs.isNotEmpty) {
-        final batch3 = FirebaseFirestore.instance.batch();
-        for (var doc in customersSnapshot.docs) {
-          batch3.delete(doc.reference);
-          totalDeletions++;
-        }
-        await batch3.commit();
-        debugPrint('✅ [_deleteAllRelatedDataForCollege] Deleted ${customersSnapshot.docs.length} customers');
       }
 
       // Delete all departments for this college

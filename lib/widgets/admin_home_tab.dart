@@ -9,7 +9,6 @@ import 'package:supreme_institution/providers/department_provider.dart';
 import 'package:supreme_institution/providers/equipment_provider.dart';
 import 'package:supreme_institution/providers/ticket_provider.dart';
 import 'package:supreme_institution/providers/employee_provider.dart';
-import 'package:supreme_institution/providers/visitor_provider.dart';
 import 'package:supreme_institution/providers/notification_provider.dart';
 import 'package:supreme_institution/widgets/dashboard_tile.dart';
 import 'package:supreme_institution/utils/responsive_utils.dart';
@@ -40,7 +39,6 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
     final equipmentProvider = Provider.of<EquipmentProvider>(context, listen: false);
     final departmentProvider = Provider.of<DepartmentProvider>(context, listen: false);
     final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
-    final visitorProvider = Provider.of<VisitorProvider>(context, listen: false);
     final ticketProvider = Provider.of<TicketProvider>(context, listen: false);
     final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
 
@@ -54,7 +52,6 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
       // Assuming these fetch methods exist and notify listeners
       departmentProvider.fetchDepartments(), 
       employeeProvider.fetchEmployees(),
-      visitorProvider.fetchVisitors(),
       ticketProvider.fetchTickets(),
     ]);
 
@@ -188,13 +185,11 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
     final equipmentProvider = Provider.of<EquipmentProvider>(context);
     final ticketProvider = Provider.of<TicketProvider>(context);
     final employeeProvider = Provider.of<EmployeeProvider>(context); // Added
-    final visitorProvider = Provider.of<VisitorProvider>(context); // Added
     final inspectionProvider = Provider.of<InspectionProvider>(context, listen: false);
 
     final collegeCount = collegeProvider.colleges.length;
     final departmentCount = departmentProvider.departments.length; // Added
     final employeeCount = employeeProvider.employees.length;       // Added
-    final visitorCount = visitorProvider.visitors.length;       // Added
     final ticketCount = ticketProvider.tickets.length;
     
     // Use the same filtering logic as the dedicated tab for consistency
@@ -208,7 +203,6 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
     debugPrint('📊 [AdminHomeTab] Total colleges: $collegeCount');
     debugPrint('📊 [AdminHomeTab] Total departments: $departmentCount');
     debugPrint('📊 [AdminHomeTab] Total employees: $employeeCount');
-    debugPrint('📊 [AdminHomeTab] Total visitors: $visitorCount');
     debugPrint('📊 [AdminHomeTab] Total tickets: $ticketCount');
 
     final allStatuses = equipmentProvider.equipments.map((e) => e.status.trim()).toSet();
@@ -239,6 +233,7 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
                     title: 'Total Colleges',
                     icon: Icons.school,
                     color: Colors.blue,
+                    onTap: () => DefaultTabController.of(context).animateTo(1),
                   ),
               DashboardTile(
                 count: departmentCount.toString(), // Added
@@ -253,22 +248,18 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
                 color: Colors.purple,                 // Added
               ),
               DashboardTile(
-                count: visitorCount.toString(),       // Added
-                title: 'Total Visitors',              // Added
-                icon: Icons.person_pin,               // Added
-                color: Colors.teal,                   // Added
-              ),
-              DashboardTile(
                 count: ticketCount.toString(),
                 title: 'Total Tickets',
                 icon: Icons.confirmation_number,
                 color: Colors.orange,
+                onTap: () => DefaultTabController.of(context).animateTo(5),
               ),
               DashboardTile(
                 count: notWorkingEquipmentCount.toString(),
                 title: 'Equipments Not Working',
                 icon: Icons.build_circle,
                 color: Colors.red,
+                onTap: () => DefaultTabController.of(context).animateTo(6),
               ),
             ],
           ),

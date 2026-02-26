@@ -71,24 +71,26 @@ class _EmployeeHomeTabState extends State<EmployeeHomeTab> {
             mainAxisSpacing: 12,
             childAspectRatio: 0.9,
             children: [
-              InkWell(
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => MyEquipmentsScreen(employeeId: widget.employeeId, collegeName: widget.collegeName),
-                  ));
-                },
-                child: DashboardTile(
-                  count: myEquipments.length.toString(),
-                  title: 'My Equipments',
-                  icon: Icons.person_pin_circle,
-                  color: Colors.green,
-                ),
+              DashboardTile(
+                count: collegeEquipments.length.toString(),
+                title: 'College Equipments',
+                icon: Icons.school,
+                color: Colors.blue,
+                onTap: () => DefaultTabController.of(context).animateTo(3),
+              ),
+              DashboardTile(
+                count: myEquipments.length.toString(),
+                title: 'My Equipments',
+                icon: Icons.person_pin_circle,
+                color: Colors.green,
+                onTap: () => DefaultTabController.of(context).animateTo(2),
               ),
               DashboardTile(
                 count: notWorkingCount.toString(),
                 title: 'My Equipments Not Working',
                 icon: Icons.build,
                 color: Colors.red,
+                onTap: () => DefaultTabController.of(context).animateTo(2),
               ),
             ],
           ),

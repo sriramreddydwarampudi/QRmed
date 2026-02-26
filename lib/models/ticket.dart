@@ -9,7 +9,7 @@ class Ticket {
   final String? title;
   final String? description;
   final TicketStatus status;
-  final String raisedBy; // Can be employeeId, customerId, or collegeId
+  final String raisedBy; // Can be employeeId or collegeId
   final String raisedTo; // Can be collegeId or 'admin'
   final DateTime timestamp;
   final String? collegeId; // For college tickets

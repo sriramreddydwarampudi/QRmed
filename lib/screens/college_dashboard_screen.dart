@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supreme_institution/models/college.dart';
-import 'package:supreme_institution/screens/manage_visitors_screen.dart';
 import 'package:supreme_institution/screens/manage_employees_screen.dart';
 import 'package:supreme_institution/screens/manage_equipments_screen.dart';
 import 'package:supreme_institution/screens/manage_departments_screen.dart';
@@ -29,13 +28,15 @@ class _CollegeDashboardScreenState extends State<CollegeDashboardScreen> {
     super.initState();
     _currentCollege = widget.college;
     _widgetOptions = <Widget>[
-      CollegeHomeTab(college: _currentCollege),
+      CollegeHomeTab(
+        college: _currentCollege,
+        onTabSelected: _onItemTapped,
+      ),
       ManageEquipmentsScreen(collegeName: _currentCollege.id),
       ManageEmployeesScreen(
         collegeId: _currentCollege.id,
         collegeType: _currentCollege.type, // Pass the college type here
       ),
-      ManageVisitorsScreen(collegeName: _currentCollege.id),
       ManageDepartmentsScreen(college: _currentCollege),
       ManageTicketsScreen(
         userId: _currentCollege.id,
@@ -88,10 +89,6 @@ class _CollegeDashboardScreenState extends State<CollegeDashboardScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.people),
             label: 'Employees',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_pin),
-            label: 'Visitors',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.business),

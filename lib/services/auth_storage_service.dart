@@ -3,9 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthStorageService {
   static const String _keyUserEmail = 'user_email';
   static const String _keyUserPassword = 'user_password';
-  static const String _keyUserType = 'user_type'; // 'admin', 'college', 'employee', 'customer'
-  static const String _keyCollegeId = 'college_id'; // For college/employee/customer
-  static const String _keyCollegeName = 'college_name'; // For employee/customer
+  static const String _keyUserType = 'user_type'; // 'admin', 'college', 'employee'
+  static const String _keyCollegeId = 'college_id'; // For college/employee
+  static const String _keyCollegeName = 'college_name'; // For employee
 
   // Save login credentials
   static Future<void> saveLoginCredentials({

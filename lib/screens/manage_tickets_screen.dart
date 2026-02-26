@@ -11,7 +11,7 @@ enum TicketView {
 
 class ManageTicketsScreen extends StatefulWidget {
   final String userId;
-  final String userRole; // 'admin', 'college', 'employee', 'customer'
+  final String userRole; // 'admin', 'college', 'employee'
   final String collegeId;
   final String? collegeName;
 

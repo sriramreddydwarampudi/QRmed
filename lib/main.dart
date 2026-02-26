@@ -8,12 +8,10 @@ import 'screens/manage_colleges_screen.dart';
 import 'screens/add_edit_college_screen.dart';
 import 'screens/manage_inspection_screen.dart';
 import 'screens/employee_dashboard_screen.dart';
-import 'screens/customer_dashboard_screen.dart';
 import 'screens/college_dashboard_screen.dart';
 import 'models/college.dart';
 import 'providers/college_provider.dart';
 import 'providers/employee_provider.dart';
-import 'providers/visitor_provider.dart';
 import 'providers/product_provider.dart';
 import 'providers/equipment_provider.dart'; // Import EquipmentProvider
 import 'providers/inspection_provider.dart'; // Import InspectionProvider
@@ -46,7 +44,6 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => CollegeProvider()),
         ChangeNotifierProvider(create: (_) => EmployeeProvider()),
-        ChangeNotifierProvider(create: (_) => VisitorProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
         ChangeNotifierProvider(create: (_) => EquipmentProvider()), // Add EquipmentProvider
         ChangeNotifierProvider(create: (_) => InspectionProvider()), // Add InspectionProvider
@@ -123,14 +120,6 @@ class MyApp extends StatelessWidget {
               final collegeName = args['collegeName'] ?? 'College';
               return MaterialPageRoute(
                 builder: (context) => EmployeeDashboardScreen(employeeId: employeeId, collegeName: collegeName),
-              );
-            }
-            if (settings.name == '/customerDashboard') {
-              final args = settings.arguments as Map<String, String>? ?? {};
-              final name = args['name'] ?? 'Visitor';
-              final collegeId = args['collegeName'] ?? 'College';
-              return MaterialPageRoute(
-                builder: (context) => CustomerDashboardScreen(customerName: name, collegeName: collegeId),
               );
             }
             if (settings.name == '/collegeDashboard') {
@@ -217,13 +206,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
         _initialRoute = EmployeeDashboardScreen(
           employeeId: employeeId,
           collegeName: collegeName,
-        );
-      } else if (userType == 'customer') {
-        final name = savedCredentials['collegeName'] ?? 'Visitor';
-        final collegeId = savedCredentials['collegeId'] ?? '';
-        _initialRoute = CustomerDashboardScreen(
-          customerName: name,
-          collegeName: collegeId,
         );
       }
     }

@@ -170,7 +170,6 @@ class _AdminAddEquipmentScreenState extends State<AdminAddEquipmentScreen> {
         hasWarranty: _hasWarranty,
         warrantyUpto: _hasWarranty ? _warrantyUptoDate : null,
         assignedEmployeeId: _selectedEmployeeId,
-        customerReceived: null,
         collegeId: _selectedCollege!.id,
       );
 

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supreme_institution/models/college.dart';
-import 'package:supreme_institution/models/visitor.dart';
 import 'package:supreme_institution/models/employee.dart';
 import '../providers/college_provider.dart';
 import '../providers/employee_provider.dart';
-import '../providers/visitor_provider.dart';
 import '../services/auth_storage_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -79,14 +77,11 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _fetchAllLogins() async {
     final collegeProvider = Provider.of<CollegeProvider>(context, listen: false);
     final employeeProvider = Provider.of<EmployeeProvider>(context, listen: false);
-    final visitorProvider = Provider.of<VisitorProvider>(context, listen: false);
     await collegeProvider.fetchColleges();
     await employeeProvider.fetchEmployees();
-    await visitorProvider.fetchVisitors();
     final logins = <String>[];
     logins.addAll(collegeProvider.colleges.map((c) => c.id));
     logins.addAll(employeeProvider.employees.map((e) => e.id));
-    logins.addAll(visitorProvider.visitors.map((v) => v.id));
     logins.add('supreme@supreme.com');
     setState(() {
       _allLogins = logins;
@@ -344,38 +339,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       Navigator.of(context).pushReplacementNamed('/employeeDashboard',
           arguments: {'employeeId': employee.id, 'collegeName': collegeName});
-      return;
-    }
-
-    // Visitor login
-    final visitorProvider = Provider.of<VisitorProvider>(context, listen: false);
-    Visitor? visitor;
-    try {
-      visitor = visitorProvider.visitors.firstWhere((v) => v.id == email && v.password == password);
-    } catch (_) {
-      visitor = null;
-    }
-    if (visitor != null) {
-      // Verify visitor still exists in Firebase (to catch deleted visitors)
-      final verifyVisitor = await visitorProvider.getVisitorById(visitor.id);
-      if (verifyVisitor == null) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid credentials. Visitor account not found.')),
-        );
-        return;
-      }
-      setState(() => _isLoading = false);
-      // Save login credentials
-      await AuthStorageService.saveLoginCredentials(
-        email: email,
-        password: password,
-        userType: 'customer',
-        collegeId: visitor.collegeId,
-        collegeName: visitor.collegeId,
-      );
-      Navigator.of(context).pushReplacementNamed('/customerDashboard',
-          arguments: {'name': visitor.name, 'collegeName': visitor.collegeId});
       return;
     }
 

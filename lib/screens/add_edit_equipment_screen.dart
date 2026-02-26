@@ -257,7 +257,6 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
         hasWarranty: _hasWarranty,
         warrantyUpto: _hasWarranty ? _warrantyUptoDate : null,
         assignedEmployeeId: _selectedEmployeeId, // Set from dropdown selection
-        customerReceived: null, // This would be set if a customer received it
         collegeId: _college!.id, // Assuming _college is not null at this point
       );
 

@@ -39,7 +39,6 @@ class _ManageCollegesScreenState extends State<ManageCollegesScreen> {
               'This will also delete all related data:\n'
               '• All equipments\n'
               '• All employees\n'
-              '• All customers\n'
               '• All departments\n'
               '• All tickets\n\n'
               'This action cannot be undone!'),

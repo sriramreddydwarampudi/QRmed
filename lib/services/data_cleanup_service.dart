@@ -15,7 +15,6 @@ class DataCleanupService {
         'colleges',
         'equipments',
         'employees',
-        'customers',
         'departments',
         'tickets',
         'inspections',
