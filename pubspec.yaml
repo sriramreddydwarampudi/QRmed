@@ -72,18 +72,10 @@ flutter_launcher_icons:
 flutter_native_splash:
   color: "#ffffff"
   color_dark: "#ffffff"
-  image: "assets/supreme_logo_transparent.png"
-  image_dark: "assets/supreme_logo_transparent.png"
+  image: "assets/supreme logo.png"
+  image_dark: "assets/supreme logo.png"
   branding: "assets/branding.png"
   branding_dark: "assets/branding.png"
-  android: true
+  android: false
   ios: true
   web: true
-  android_12:
-    image: "assets/supreme_logo_transparent.png"
-    color: "#ffffff"
-    color_dark: "#ffffff"
-    branding: "assets/branding.png"
-    branding_dark: "assets/branding.png"
-    icon_background_color: "#ffffff"
-    icon_background_color_dark: "#ffffff"
