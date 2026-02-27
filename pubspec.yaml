@@ -76,6 +76,14 @@ flutter_native_splash:
   image_dark: "assets/supreme logo.png"
   branding: "assets/branding.png"
   branding_dark: "assets/branding.png"
-  android: false
+  android: true
   ios: true
   web: true
+  android_12:
+    image: "assets/supreme logo.png"
+    color: "#ffffff"
+    color_dark: "#ffffff"
+    branding: "assets/branding.png"
+    branding_dark: "assets/branding.png"
+    icon_background_color: "#ffffff"
+    icon_background_color_dark: "#ffffff"
