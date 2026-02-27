@@ -59,6 +59,7 @@ flutter:
   assets:
     - assets/favicon.png
     - assets/supreme logo.png
+    - assets/branding.png
 
 flutter_launcher_icons:
   android: "ic_launcher"
@@ -70,9 +71,11 @@ flutter_launcher_icons:
 flutter_native_splash:
   color: "#ffffff"
   image: "assets/supreme logo.png"
+  branding: "assets/branding.png"
   android: true
   ios: true
   web: true
   android_12:
     image: "assets/supreme logo.png"
     color: "#ffffff"
+    branding: "assets/branding.png"
