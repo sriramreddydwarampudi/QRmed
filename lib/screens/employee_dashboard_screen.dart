@@ -129,30 +129,45 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
               icon: const Icon(Icons.bug_report, color: Colors.red),
               tooltip: 'Test Notification Flow',
               onPressed: () async {
+                print('DEBUG: Employee Test Button Pressed (Employee: ${widget.employeeId})');
                 final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
                 
-                // 1. Notify Admin
-                await notificationProvider.addNotification(AppNotification(
-                  id: '',
-                  title: 'Employee Test: Equipment Failure',
-                  message: 'Employee ${widget.employeeId} reported a test failure in ${widget.collegeName}.',
-                  timestamp: DateTime.now(),
-                  targetUserId: 'admin',
-                ));
+                try {
+                  print('DEBUG: Sending test notification to Admin...');
+                  await notificationProvider.addNotification(AppNotification(
+                    id: '',
+                    title: 'Employee Test Alert',
+                    message: 'Employee ${widget.employeeId} triggered a test for Admin.',
+                    timestamp: DateTime.now(),
+                    targetUserId: 'admin',
+                  ));
+                  print('DEBUG: Admin notification successfully added to Firestore');
 
-                // 2. Notify College
-                await notificationProvider.addNotification(AppNotification(
-                  id: '',
-                  title: 'Employee Test: Equipment Failure',
-                  message: 'Employee ${widget.employeeId} reported a test failure in your college.',
-                  timestamp: DateTime.now(),
-                  targetUserId: widget.collegeName, // Assuming collegeName is the ID used for notifications
-                ));
+                  print('DEBUG: Sending test notification to College: ${widget.collegeName}...');
+                  await notificationProvider.addNotification(AppNotification(
+                    id: '',
+                    title: 'Employee Test Alert',
+                    message: 'Employee ${widget.employeeId} triggered a test for your College.',
+                    timestamp: DateTime.now(),
+                    targetUserId: widget.collegeName,
+                  ));
+                  print('DEBUG: College notification successfully added to Firestore');
 
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Test alerts sent to Admin and College')),
+                  print('DEBUG: Triggering LOCAL notification for Employee...');
+                  await NotificationService.showSystemNotification(
+                    id: 888,
+                    title: 'Employee Local Test',
+                    body: 'Test alert sent to Admin and College.',
                   );
+                  print('DEBUG: Local notification trigger completed');
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Test complete: Alerts sent + Local triggered')),
+                    );
+                  }
+                } catch (e) {
+                  print('DEBUG ERROR: Employee test flow failed: $e');
                 }
               },
             ),

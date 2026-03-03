@@ -15,19 +15,24 @@ class NotificationProvider with ChangeNotifier {
   Stream<AppNotification> get newNotificationStream => _newNotificationController.stream;
 
   void startListening(String targetUserId) {
+    print('DEBUG: NotificationProvider: Starting listener for targetUserId: $targetUserId');
     _subscription?.cancel();
     _subscription = getNotifications(targetUserId).listen((notifications) {
+      print('DEBUG: NotificationProvider: Received ${notifications.length} notifications from Firestore');
       if (notifications.isNotEmpty) {
         // Find all unread notifications we haven't seen in this session
         final unreadAndNew = notifications.where((n) => !n.isRead && !_seenNotificationIds.contains(n.id)).toList();
+        print('DEBUG: NotificationProvider: Found ${unreadAndNew.length} NEW unread notifications');
         
         for (var latest in unreadAndNew) {
+          print('DEBUG: NotificationProvider: Processing notification: ${latest.title} (ID: ${latest.id})');
           _seenNotificationIds.add(latest.id);
           
           // Broadcast to in-app listeners
           _newNotificationController.add(latest);
           
           // Also show system notification
+          print('DEBUG: NotificationProvider: Triggering showSystemNotification for ${latest.id}');
           NotificationService.showSystemNotification(
             id: latest.id.hashCode,
             title: latest.title,
@@ -39,6 +44,8 @@ class NotificationProvider with ChangeNotifier {
       // Update seen IDs to only include current unread ones to prevent memory leak
       final currentUnreadIds = notifications.where((n) => !n.isRead).map((n) => n.id).toSet();
       _seenNotificationIds.retainAll(currentUnreadIds);
+    }, onError: (error) {
+      print('DEBUG ERROR: NotificationProvider listener error: $error');
     });
   }
 

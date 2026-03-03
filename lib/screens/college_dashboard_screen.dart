@@ -150,21 +150,35 @@ class _CollegeDashboardScreenState extends State<CollegeDashboardScreen> {
             icon: const Icon(Icons.bug_report, color: Colors.white),
             tooltip: 'Test Admin Notification',
             onPressed: () async {
+              print('DEBUG: College Test Button Pressed (College: ${_currentCollege.id})');
               final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
               
-              // Notify Admin
-              await notificationProvider.addNotification(AppNotification(
-                id: '',
-                title: 'College Test: Equipment Failure',
-                message: 'College ${_currentCollege.name} reported a test failure.',
-                timestamp: DateTime.now(),
-                targetUserId: 'admin',
-              ));
+              try {
+                print('DEBUG: Sending test notification to Admin from College ${_currentCollege.id}...');
+                await notificationProvider.addNotification(AppNotification(
+                  id: '',
+                  title: 'College Test: Failure',
+                  message: 'College ${_currentCollege.name} sent a test alert.',
+                  timestamp: DateTime.now(),
+                  targetUserId: 'admin',
+                ));
+                print('DEBUG: Notification added to Firestore for Admin');
 
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Test alert sent to Admin')),
+                print('DEBUG: Triggering LOCAL notification for College...');
+                await NotificationService.showSystemNotification(
+                  id: 777,
+                  title: 'College Local Test',
+                  body: 'Alert sent to Admin.',
                 );
+                print('DEBUG: Local notification trigger completed');
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Test complete: Alert sent to Admin + Local triggered')),
+                  );
+                }
+              } catch (e) {
+                print('DEBUG ERROR: College test failed: $e');
               }
             },
           ),

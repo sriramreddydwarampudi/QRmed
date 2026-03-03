@@ -118,11 +118,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               icon: const Icon(Icons.bug_report, color: Colors.red),
               tooltip: 'Test Notification',
               onPressed: () async {
-                await NotificationService.showSystemNotification(
-                  id: 999,
-                  title: 'Test Notification',
-                  body: 'This is a test notification to verify the system works.',
-                );
+                print('DEBUG: Admin Test Button Pressed');
+                try {
+                  print('DEBUG: Calling NotificationService.showSystemNotification...');
+                  await NotificationService.showSystemNotification(
+                    id: 999,
+                    title: 'Admin Local Test',
+                    body: 'If you see this, local notifications are working!',
+                  );
+                  print('DEBUG: NotificationService call completed');
+                } catch (e) {
+                  print('DEBUG ERROR: Admin Test failed: $e');
+                }
               },
             ),
             const NotificationBell(targetUserId: 'admin'),
