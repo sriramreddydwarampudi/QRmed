@@ -65,7 +65,6 @@ class NotificationService {
 
       notification.onClick.listen((event) {
         print('NotificationService (Web): Notification clicked');
-        html.window.focus();
         notification.close();
       });
       
