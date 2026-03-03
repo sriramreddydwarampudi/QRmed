@@ -50,16 +50,21 @@ class EquipmentProvider with ChangeNotifier {
   }
 
   Future<void> updateEquipment(String id, Equipment updatedEquipment, {NotificationProvider? notificationProvider, String? updatedByRole}) async {
+    print('DEBUG: EquipmentProvider: updateEquipment called for $id by role: $updatedByRole');
     final oldEquipment = _equipments.firstWhere((e) => e.id == id);
     final normalizedEquipment = updatedEquipment.copyWith(
       status: updatedEquipment.status.trim(),
     );
     
+    print('DEBUG: EquipmentProvider: Status change: ${oldEquipment.status} -> ${normalizedEquipment.status}');
+    
     await _equipmentCollection.doc(id).update(normalizedEquipment.toJson());
 
     if (notificationProvider != null) {
+      print('DEBUG: EquipmentProvider: notificationProvider is NOT null, checking scenarios...');
       // Scenario 1: College sets status to Not Working -> Admin gets notification
       if (oldEquipment.status != 'Not Working' && normalizedEquipment.status == 'Not Working' && updatedByRole == 'college') {
+        print('DEBUG: EquipmentProvider: Scenario 1 triggered (College -> Admin)');
         await notificationProvider.addNotification(AppNotification(
           id: '',
           title: 'Equipment Failure',
@@ -72,6 +77,7 @@ class EquipmentProvider with ChangeNotifier {
       
       // Scenario 2: Admin sets status from Not Working to Working -> College gets notification
       if (oldEquipment.status == 'Not Working' && normalizedEquipment.status == 'Working' && updatedByRole == 'admin') {
+        print('DEBUG: EquipmentProvider: Scenario 2 triggered (Admin -> College)');
         await notificationProvider.addNotification(AppNotification(
           id: '',
           title: 'Equipment Restored',
@@ -84,29 +90,48 @@ class EquipmentProvider with ChangeNotifier {
 
       // Scenario 3: Employee changes status -> Both Admin and College get notification
       if (updatedByRole == 'employee' && oldEquipment.status != normalizedEquipment.status) {
+        print('DEBUG: EquipmentProvider: Scenario 3 triggered (Employee -> Admin & College)');
         final title = normalizedEquipment.status == 'Working' ? 'Equipment Restored' : 'Equipment Failure';
         final message = 'Employee ${normalizedEquipment.assignedEmployeeId} marked: ${normalizedEquipment.name} (ID: ${normalizedEquipment.id}) as ${normalizedEquipment.status}.';
         
         // Notify Admin
-        await notificationProvider.addNotification(AppNotification(
-          id: '',
-          title: title,
-          message: message,
-          timestamp: DateTime.now(),
-          targetUserId: 'admin',
-          equipmentId: normalizedEquipment.id,
-        ));
+        print('DEBUG: EquipmentProvider: Sending notification to Admin. Message: $message');
+        try {
+          await notificationProvider.addNotification(AppNotification(
+            id: '',
+            title: title,
+            message: message,
+            timestamp: DateTime.now(),
+            targetUserId: 'admin',
+            equipmentId: normalizedEquipment.id,
+          ));
+          print('DEBUG: EquipmentProvider: Admin notification added successfully');
+        } catch (e) {
+          print('DEBUG ERROR: EquipmentProvider: Failed to add Admin notification: $e');
+        }
 
         // Notify College
-        await notificationProvider.addNotification(AppNotification(
-          id: '',
-          title: title,
-          message: message,
-          timestamp: DateTime.now(),
-          targetUserId: normalizedEquipment.collegeId,
-          equipmentId: normalizedEquipment.id,
-        ));
+        print('DEBUG: EquipmentProvider: Sending notification to College: ${normalizedEquipment.collegeId}. Message: $message');
+        try {
+          await notificationProvider.addNotification(AppNotification(
+            id: '',
+            title: title,
+            message: message,
+            timestamp: DateTime.now(),
+            targetUserId: normalizedEquipment.collegeId,
+            equipmentId: normalizedEquipment.id,
+          ));
+          print('DEBUG: EquipmentProvider: College notification added successfully');
+        } catch (e) {
+          print('DEBUG ERROR: EquipmentProvider: Failed to add College notification: $e');
+        }
+      } else {
+        if (updatedByRole == 'employee') {
+          print('DEBUG: EquipmentProvider: Employee updated, but status did NOT change (${oldEquipment.status} == ${normalizedEquipment.status})');
+        }
       }
+    } else {
+      print('DEBUG: EquipmentProvider: notificationProvider IS NULL. No notifications will be sent.');
     }
 
     await fetchEquipments();

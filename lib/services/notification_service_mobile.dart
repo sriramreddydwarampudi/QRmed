@@ -52,6 +52,9 @@ class NotificationService {
         print('NotificationService: Requesting Android 13+ permissions...');
         final granted = await androidPlugin.requestNotificationsPermission();
         print('NotificationService: Permission granted: $granted');
+        if (granted != true) {
+          print('WARNING: Notification permissions NOT granted. System notifications will NOT appear.');
+        }
       } else {
         print('NotificationService: Android plugin NOT found (not on Android?)');
       }

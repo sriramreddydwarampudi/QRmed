@@ -90,11 +90,11 @@ class _MyEquipmentsScreenState extends State<MyEquipmentsScreen> {
               label: 'Toggle',
               icon: equipment.status == 'Working' ? Icons.check_circle : Icons.error_outline,
               color: equipment.status == 'Working' ? Colors.green : Colors.red,
-              onPressed: () {
+              onPressed: () async {
                 final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
                 final newStatus = equipment.status == 'Working' ? 'Not Working' : 'Working';
                 final updatedEquipment = equipment.copyWith(status: newStatus);
-                equipmentProvider.updateEquipment(
+                await equipmentProvider.updateEquipment(
                   equipment.id, 
                   updatedEquipment,
                   notificationProvider: notificationProvider,
