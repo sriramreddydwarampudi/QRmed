@@ -10,6 +10,7 @@ import 'package:supreme_institution/screens/manage_tickets_screen.dart';
 import 'package:supreme_institution/services/auth_service.dart';
 import 'package:supreme_institution/widgets/college_home_tab.dart';
 import 'package:supreme_institution/widgets/notification_bell.dart';
+import 'package:supreme_institution/models/app_notification.dart';
 
 class CollegeDashboardScreen extends StatefulWidget {
   final College college;
@@ -145,6 +146,28 @@ class _CollegeDashboardScreenState extends State<CollegeDashboardScreen> {
         ),
         backgroundColor: Theme.of(context).primaryColor,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.bug_report, color: Colors.white),
+            tooltip: 'Test Admin Notification',
+            onPressed: () async {
+              final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+              
+              // Notify Admin
+              await notificationProvider.addNotification(AppNotification(
+                id: '',
+                title: 'College Test: Equipment Failure',
+                message: 'College ${_currentCollege.name} reported a test failure.',
+                timestamp: DateTime.now(),
+                targetUserId: 'admin',
+              ));
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Test alert sent to Admin')),
+                );
+              }
+            },
+          ),
           NotificationBell(targetUserId: _currentCollege.id),
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),

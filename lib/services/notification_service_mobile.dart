@@ -27,10 +27,20 @@ class NotificationService {
       },
     );
 
-    // Request permissions for Android 13+
+    // Create a high-importance channel for Android
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'qrmed_notifications',
+      'QRmed Notifications',
+      description: 'Notifications for equipment status changes',
+      importance: Importance.max,
+    );
+
     final androidPlugin = _notificationsPlugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
+    
     if (androidPlugin != null) {
+      await androidPlugin.createNotificationChannel(channel);
+      // Request permissions for Android 13+
       await androidPlugin.requestNotificationsPermission();
     }
   }
@@ -42,7 +52,7 @@ class NotificationService {
     String? payload,
   }) async {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'qrmed_notifications',
+      'qrmed_notifications', // Matches the channel ID created in initialize
       'QRmed Notifications',
       channelDescription: 'Notifications for equipment status changes',
       importance: Importance.max,

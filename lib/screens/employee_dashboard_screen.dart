@@ -11,6 +11,8 @@ import 'package:supreme_institution/widgets/my_equipments_widget.dart';
 import 'package:supreme_institution/widgets/college_equipments_widget.dart';
 import 'package:supreme_institution/widgets/employee_home_tab.dart';
 import 'package:supreme_institution/widgets/notification_bell.dart';
+import 'package:supreme_institution/services/notification_service.dart';
+import 'package:supreme_institution/models/app_notification.dart';
 
 class EmployeeDashboardScreen extends StatefulWidget {
   final String employeeId;
@@ -123,6 +125,37 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
         appBar: AppBar(
           title: Text(widget.employeeId),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.bug_report, color: Colors.red),
+              tooltip: 'Test Notification Flow',
+              onPressed: () async {
+                final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+                
+                // 1. Notify Admin
+                await notificationProvider.addNotification(AppNotification(
+                  id: '',
+                  title: 'Employee Test: Equipment Failure',
+                  message: 'Employee ${widget.employeeId} reported a test failure in ${widget.collegeName}.',
+                  timestamp: DateTime.now(),
+                  targetUserId: 'admin',
+                ));
+
+                // 2. Notify College
+                await notificationProvider.addNotification(AppNotification(
+                  id: '',
+                  title: 'Employee Test: Equipment Failure',
+                  message: 'Employee ${widget.employeeId} reported a test failure in your college.',
+                  timestamp: DateTime.now(),
+                  targetUserId: widget.collegeName, // Assuming collegeName is the ID used for notifications
+                ));
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Test alerts sent to Admin and College')),
+                  );
+                }
+              },
+            ),
             NotificationBell(targetUserId: widget.employeeId),
             IconButton(
               icon: const Icon(Icons.logout),

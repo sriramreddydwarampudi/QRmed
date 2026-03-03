@@ -11,6 +11,7 @@ import 'package:supreme_institution/screens/admin_mass_stickers_screen.dart';
 import 'package:supreme_institution/services/auth_service.dart';
 import 'package:supreme_institution/widgets/admin_home_tab.dart';
 import 'package:supreme_institution/widgets/notification_bell.dart';
+import 'package:supreme_institution/services/notification_service.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -113,6 +114,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         appBar: AppBar(
           title: const Text('Admin Dashboard'),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.bug_report, color: Colors.red),
+              tooltip: 'Test Notification',
+              onPressed: () async {
+                await NotificationService.showSystemNotification(
+                  id: 999,
+                  title: 'Test Notification',
+                  body: 'This is a test notification to verify the system works.',
+                );
+              },
+            ),
             const NotificationBell(targetUserId: 'admin'),
             IconButton(
               icon: const Icon(Icons.logout),
