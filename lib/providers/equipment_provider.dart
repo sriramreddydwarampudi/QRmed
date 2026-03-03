@@ -59,7 +59,7 @@ class EquipmentProvider with ChangeNotifier {
 
     if (notificationProvider != null) {
       // Scenario 1: College sets status to Not Working -> Admin gets notification
-      if (oldEquipment.status != 'Not Working' && normalizedEquipment.status == 'Not Working' && updatedByRole != 'admin') {
+      if (oldEquipment.status != 'Not Working' && normalizedEquipment.status == 'Not Working' && updatedByRole == 'college') {
         await notificationProvider.addNotification(AppNotification(
           id: '',
           title: 'Equipment Failure',
@@ -76,6 +76,32 @@ class EquipmentProvider with ChangeNotifier {
           id: '',
           title: 'Equipment Restored',
           message: 'Admin marked: ${normalizedEquipment.name} (ID: ${normalizedEquipment.id}) as Working.',
+          timestamp: DateTime.now(),
+          targetUserId: normalizedEquipment.collegeId,
+          equipmentId: normalizedEquipment.id,
+        ));
+      }
+
+      // Scenario 3: Employee changes status -> Both Admin and College get notification
+      if (updatedByRole == 'employee' && oldEquipment.status != normalizedEquipment.status) {
+        final title = normalizedEquipment.status == 'Working' ? 'Equipment Restored' : 'Equipment Failure';
+        final message = 'Employee ${normalizedEquipment.assignedEmployeeId} marked: ${normalizedEquipment.name} (ID: ${normalizedEquipment.id}) as ${normalizedEquipment.status}.';
+        
+        // Notify Admin
+        await notificationProvider.addNotification(AppNotification(
+          id: '',
+          title: title,
+          message: message,
+          timestamp: DateTime.now(),
+          targetUserId: 'admin',
+          equipmentId: normalizedEquipment.id,
+        ));
+
+        // Notify College
+        await notificationProvider.addNotification(AppNotification(
+          id: '',
+          title: title,
+          message: message,
           timestamp: DateTime.now(),
           targetUserId: normalizedEquipment.collegeId,
           equipmentId: normalizedEquipment.id,

@@ -360,7 +360,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                   }
                   
                   // Ensure unique department names to avoid "Duplicate value" error in Dropdown
-                  final uniqueDeptNames = departments.map((d) => d.name).toSet().toList()..sort();
+                  final uniqueDeptNames = departments.map((d) {
+                    return d.subSelectionType != null ? "${d.name} (${d.subSelectionType})" : d.name;
+                  }).toSet().toList()..sort();
                   
                   // Ensure current department is in the list
                   if (_selectedDepartment != null && !uniqueDeptNames.contains(_selectedDepartment)) {

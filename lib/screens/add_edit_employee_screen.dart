@@ -119,7 +119,9 @@ class _AddEditEmployeeScreenState extends State<AddEditEmployeeScreen> {
     final departments = departmentProvider.getDepartmentsForCollege(widget.collegeId);
     
     // Ensure unique department names to avoid "Duplicate value" error in Dropdown
-    final uniqueDepartmentNames = departments.map((d) => d.name).toSet().toList()..sort();
+    final uniqueDepartmentNames = departments.map((d) {
+      return d.subSelectionType != null ? "${d.name} (${d.subSelectionType})" : d.name;
+    }).toSet().toList()..sort();
     
     // Safety check: if _selectedDepartment is not in the list, add it to avoid assertion error
     if (_selectedDepartment != null && !uniqueDepartmentNames.contains(_selectedDepartment)) {

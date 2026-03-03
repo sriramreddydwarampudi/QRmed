@@ -47,6 +47,7 @@ dependencies:
   english_words: ^4.0.0
   archive: ^3.6.1
   flutter_native_splash: ^2.4.4
+  flutter_local_notifications: ^20.1.0
 
 dev_dependencies:
   flutter_test:

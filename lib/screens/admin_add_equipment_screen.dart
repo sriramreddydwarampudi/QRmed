@@ -260,7 +260,9 @@ class _AdminAddEquipmentScreenState extends State<AdminAddEquipmentScreen> {
                   ? [] 
                   : (() {
                       final depts = departmentProvider.getDepartmentsForCollege(_selectedCollege!.id);
-                      final uniqueNames = depts.map((d) => d.name).toSet().toList()..sort();
+                      final uniqueNames = depts.map((d) {
+                        return d.subSelectionType != null ? "${d.name} (${d.subSelectionType})" : d.name;
+                      }).toSet().toList()..sort();
                       if (_selectedDepartment != null && !uniqueNames.contains(_selectedDepartment)) {
                         uniqueNames.add(_selectedDepartment!);
                       }

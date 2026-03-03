@@ -811,7 +811,9 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
               }
               
               // Ensure unique department names to avoid "Duplicate value" error in Dropdown
-              final uniqueDeptNames = departments.map((d) => d.name).toSet().toList()..sort();
+              final List<String> uniqueDeptNames = departments.map((d) {
+                return d.subSelectionType != null ? "${d.name} (${d.subSelectionType})" : d.name;
+              }).toSet().toList()..sort();
               
               // Ensure _selectedDepartment is valid for the items list
               if (_selectedDepartment != null && !uniqueDeptNames.contains(_selectedDepartment)) {
@@ -1247,7 +1249,9 @@ class _ManageEquipmentsScreenState extends State<ManageEquipmentsScreen> { // Ch
     final departmentsList = departmentProvider.getDepartmentsForCollege(widget.collegeName);
     
     // Ensure unique department names for the filter dropdown
-    final uniqueDeptNamesFilter = departmentsList.map((d) => d.name).toSet().toList()..sort();
+    final uniqueDeptNamesFilter = departmentsList.map((d) {
+      return d.subSelectionType != null ? "${d.name} (${d.subSelectionType})" : d.name;
+    }).toSet().toList()..sort();
 
     return Scaffold(
       appBar: AppBar(

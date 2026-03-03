@@ -55,7 +55,9 @@ class _ManageEmployeesScreenState extends State<ManageEmployeesScreen> {
     final departmentsList = departmentProvider.getDepartmentsForCollege(widget.collegeId);
     
     // Ensure unique department names for the filter dropdown
-    final uniqueDepartmentNames = departmentsList.map((d) => d.name).toSet().toList()..sort();
+    final uniqueDepartmentNames = departmentsList.map((d) {
+      return d.subSelectionType != null ? "${d.name} (${d.subSelectionType})" : d.name;
+    }).toSet().toList()..sort();
 
     final query = _searchController.text.toLowerCase();
     final filteredEmployees = _employees.where((e) {

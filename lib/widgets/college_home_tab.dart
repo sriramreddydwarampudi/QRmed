@@ -182,18 +182,24 @@ class _CollegeHomeTabState extends State<CollegeHomeTab> {
                 decoration: const InputDecoration(labelText: 'Department'),
                 selectedItemBuilder: (BuildContext context) {
                   return departmentProvider.getDepartmentsForCollege(widget.college.id).map((department) {
+                    final displayName = department.subSelectionType != null 
+                        ? "${department.name} (${department.subSelectionType})"
+                        : department.name;
                     return Text(
-                      department.name,
+                      displayName,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     );
                   }).toList();
                 },
                 items: departmentProvider.getDepartmentsForCollege(widget.college.id).map((department) {
+                  final displayName = department.subSelectionType != null 
+                      ? "${department.name} (${department.subSelectionType})"
+                      : department.name;
                   return DropdownMenuItem<Department>(
                     value: department,
                     child: Text(
-                      department.name,
+                      displayName,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),

@@ -10,16 +10,24 @@ class NotificationProvider with ChangeNotifier {
   
   StreamSubscription? _subscription;
   final Set<String> _seenNotificationIds = {};
+  final _newNotificationController = StreamController<AppNotification>.broadcast();
+
+  Stream<AppNotification> get newNotificationStream => _newNotificationController.stream;
 
   void startListening(String targetUserId) {
     _subscription?.cancel();
     _subscription = getNotifications(targetUserId).listen((notifications) {
       if (notifications.isNotEmpty) {
-        final latest = notifications.first;
-        // Only show if it's unread and we haven't shown a system notification for it yet
-        if (!latest.isRead && !_seenNotificationIds.contains(latest.id)) {
+        // Find all unread notifications we haven't seen in this session
+        final unreadAndNew = notifications.where((n) => !n.isRead && !_seenNotificationIds.contains(n.id)).toList();
+        
+        for (var latest in unreadAndNew) {
           _seenNotificationIds.add(latest.id);
           
+          // Broadcast to in-app listeners
+          _newNotificationController.add(latest);
+          
+          // Also show system notification
           NotificationService.showSystemNotification(
             id: latest.id.hashCode,
             title: latest.title,
@@ -37,6 +45,7 @@ class NotificationProvider with ChangeNotifier {
   @override
   void dispose() {
     _subscription?.cancel();
+    _newNotificationController.close();
     super.dispose();
   }
 

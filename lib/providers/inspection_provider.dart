@@ -85,9 +85,15 @@ class InspectionProvider with ChangeNotifier {
           // Check equipment
           requiredEquipments.forEach((equipmentName, requiredCount) {
             final actualCount = collegeEquipments
-                .where((e) =>
-                    e.department.trim().toLowerCase() == departmentName.toLowerCase() &&
-                    e.name.trim().toLowerCase() == equipmentName.toLowerCase())
+                .where((e) {
+                    String eDept = e.department.trim().toLowerCase();
+                    // Strip any (...) suffix if present
+                    if (eDept.contains('(') && eDept.endsWith(')')) {
+                      eDept = eDept.substring(0, eDept.lastIndexOf('(')).trim();
+                    }
+                    return eDept == departmentName.toLowerCase() &&
+                           e.name.trim().toLowerCase() == equipmentName.toLowerCase();
+                })
                 .length;
             if (actualCount < requiredCount) {
               missingEquipment.add('$departmentName: $equipmentName: ${requiredCount - actualCount} missing');
@@ -99,11 +105,17 @@ class InspectionProvider with ChangeNotifier {
           // Check employees
           requiredEmployees.forEach((role, requiredCount) {
             final actualCount = collegeEmployees
-                .where((emp) =>
-                    emp.department != null &&
-                    emp.department!.trim().toLowerCase() == departmentName.toLowerCase() &&
-                    emp.role != null &&
-                    emp.role!.trim().toLowerCase() == role.toLowerCase())
+                .where((emp) {
+                    if (emp.department == null) return false;
+                    String empDept = emp.department!.trim().toLowerCase();
+                    // Strip any (...) suffix if present
+                    if (empDept.contains('(') && empDept.endsWith(')')) {
+                      empDept = empDept.substring(0, empDept.lastIndexOf('(')).trim();
+                    }
+                    return empDept == departmentName.toLowerCase() &&
+                           emp.role != null &&
+                           emp.role!.trim().toLowerCase() == role.toLowerCase();
+                })
                 .length;
             if (actualCount < requiredCount) {
               missingStaff.add('$departmentName: $role: ${requiredCount - actualCount} missing');
