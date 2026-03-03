@@ -11,6 +11,7 @@ import 'package:supreme_institution/services/auth_service.dart';
 import 'package:supreme_institution/widgets/college_home_tab.dart';
 import 'package:supreme_institution/widgets/notification_bell.dart';
 import 'package:supreme_institution/models/app_notification.dart';
+import 'package:supreme_institution/services/notification_service.dart';
 
 class CollegeDashboardScreen extends StatefulWidget {
   final College college;
