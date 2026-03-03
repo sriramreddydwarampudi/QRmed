@@ -11,33 +11,50 @@ class NotificationProvider with ChangeNotifier {
   StreamSubscription? _subscription;
   final Set<String> _seenNotificationIds = {};
   final _newNotificationController = StreamController<AppNotification>.broadcast();
+  DateTime? _sessionStartTime;
 
   Stream<AppNotification> get newNotificationStream => _newNotificationController.stream;
 
   void startListening(String targetUserId) {
     print('DEBUG: NotificationProvider: Starting listener for targetUserId: $targetUserId');
+    _sessionStartTime = DateTime.now();
+    print('DEBUG: NotificationProvider: Session start time: $_sessionStartTime');
+    
     _subscription?.cancel();
     _subscription = getNotifications(targetUserId).listen((notifications) {
       print('DEBUG: NotificationProvider: Received ${notifications.length} notifications from Firestore');
       if (notifications.isNotEmpty) {
         // Find all unread notifications we haven't seen in this session
-        final unreadAndNew = notifications.where((n) => !n.isRead && !_seenNotificationIds.contains(n.id)).toList();
-        print('DEBUG: NotificationProvider: Found ${unreadAndNew.length} NEW unread notifications');
+        final unreadAndNew = notifications.where((n) {
+          final isUnread = !n.isRead;
+          final isNotSeen = !_seenNotificationIds.contains(n.id);
+          // ONLY trigger system notification if it happened AFTER we started the app
+          final isFromThisSession = _sessionStartTime != null && n.timestamp.isAfter(_sessionStartTime!);
+          
+          return isUnread && isNotSeen && isFromThisSession;
+        }).toList();
+
+        // Separate handling for in-app UI updates vs system notifications
+        // We might want to show all unread in UI, but only beep for NEW ones
+        final allUnseen = notifications.where((n) => !n.isRead && !_seenNotificationIds.contains(n.id)).toList();
         
-        for (var latest in unreadAndNew) {
-          print('DEBUG: NotificationProvider: Processing notification: ${latest.title} (ID: ${latest.id})');
+        print('DEBUG: NotificationProvider: Found ${allUnseen.length} total unseen, ${unreadAndNew.length} are new to this session');
+        
+        for (var latest in allUnseen) {
           _seenNotificationIds.add(latest.id);
           
-          // Broadcast to in-app listeners
+          // Broadcast to in-app listeners (snackbars, etc)
           _newNotificationController.add(latest);
           
-          // Also show system notification
-          print('DEBUG: NotificationProvider: Triggering showSystemNotification for ${latest.id}');
-          NotificationService.showSystemNotification(
-            id: latest.id.hashCode,
-            title: latest.title,
-            body: latest.message,
-          );
+          // ONLY show system notification if it's actually new from this session
+          if (unreadAndNew.contains(latest)) {
+            print('DEBUG: NotificationProvider: Triggering showSystemNotification for ${latest.title}');
+            NotificationService.showSystemNotification(
+              id: latest.id.hashCode,
+              title: latest.title,
+              body: latest.message,
+            );
+          }
         }
       }
       
