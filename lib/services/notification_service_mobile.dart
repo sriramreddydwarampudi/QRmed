@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:io';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -52,16 +53,28 @@ class NotificationService {
         print('NotificationService: Requesting Android 13+ permissions...');
         final granted = await androidPlugin.requestNotificationsPermission();
         print('NotificationService: Permission granted: $granted');
-        if (granted != true) {
-          print('WARNING: Notification permissions NOT granted. System notifications will NOT appear.');
-        }
-      } else {
-        print('NotificationService: Android plugin NOT found (not on Android?)');
       }
     } catch (e) {
       print('NotificationService Error during initialization: $e');
     }
   }
+
+  static Future<bool> requestPermission() async {
+    if (Platform.isAndroid) {
+      final androidPlugin = _notificationsPlugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      return await androidPlugin?.requestNotificationsPermission() ?? false;
+    } else if (Platform.isIOS) {
+      final iosPlugin = _notificationsPlugin.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
+      return await iosPlugin?.requestPermissions(alert: true, badge: true, sound: true) ?? false;
+    }
+    return false;
+  }
+
+  static bool get isSystemNotificationSupported => Platform.isAndroid || Platform.isIOS;
+  
+  static bool get isSystemNotificationEnabled => true; // Mobile plugin handles its own suppression if permission is missing
 
   static Future<void> showSystemNotification({
     required int id,
@@ -72,7 +85,7 @@ class NotificationService {
     print('NotificationService: Attempting to show notification (ID: $id, Title: $title)');
     
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'qrmed_notifications', // Matches the channel ID created in initialize
+      'qrmed_notifications',
       'QRmed Notifications',
       channelDescription: 'Notifications for equipment status changes',
       importance: Importance.max,

@@ -21,6 +21,11 @@ class NotificationService {
     return result == 'granted';
   }
 
+  static bool get isSystemNotificationSupported => html.Notification.supported;
+  
+  static bool get isSystemNotificationEnabled => 
+    html.Notification.supported && html.Notification.permission == 'granted';
+
   static Future<void> showSystemNotification({
     required int id,
     required String title,
@@ -42,15 +47,13 @@ class NotificationService {
         _createNotification(title, body);
       } else if (status != 'denied') {
         print('NotificationService (Web): Requesting permission...');
-        // In web, requestPermission MUST be triggered by a user gesture.
-        // This function is typically called from a button click's onPressed.
         final result = await html.Notification.requestPermission();
         print('NotificationService (Web): Permission request result: $result');
         if (result == 'granted') {
           _createNotification(title, body);
         }
       } else {
-        print('NotificationService (Web): Permission denied. Please enable notifications in your browser settings.');
+        print('NotificationService (Web): Permission denied.');
       }
     } catch (e) {
       print('NotificationService (Web) Error in showSystemNotification: $e');
@@ -61,7 +64,6 @@ class NotificationService {
     try {
       print('NotificationService (Web): Creating notification object...');
       
-      // We try to find a suitable icon. Flutter's default icon for web is at icons/Icon-192.png
       final notification = html.Notification(
         title,
         body: body,
@@ -77,14 +79,6 @@ class NotificationService {
       print('NotificationService (Web): Notification triggered successfully');
     } catch (e) {
       print('NotificationService (Web) Error in _createNotification: $e');
-      
-      // Try with minimal options if it failed
-      try {
-        print('NotificationService (Web): Trying minimal notification...');
-        html.Notification(title, body: body);
-      } catch (e2) {
-        print('NotificationService (Web): Minimal notification also failed: $e2');
-      }
     }
   }
 }

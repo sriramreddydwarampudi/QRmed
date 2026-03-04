@@ -1,17 +1,16 @@
 import 'dart:async';
-import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supreme_institution/models/college.dart';
 import 'package:supreme_institution/providers/notification_provider.dart';
 import 'package:supreme_institution/screens/manage_employees_screen.dart';
-import 'package:supreme_institution/screens/manage_equipments_screen.dart';
-import 'package:supreme_institution/screens/manage_departments_screen.dart';
+import 'package:supreme_institution/screens/manage_inspection_screen.dart';
 import 'package:supreme_institution/screens/manage_tickets_screen.dart';
+import 'package:supreme_institution/screens/college_equipments_not_working_screen.dart';
 import 'package:supreme_institution/services/auth_service.dart';
 import 'package:supreme_institution/widgets/college_home_tab.dart';
 import 'package:supreme_institution/widgets/notification_bell.dart';
-import 'package:supreme_institution/models/app_notification.dart';
+import 'package:supreme_institution/services/notification_service.dart';
 import 'package:supreme_institution/services/notification_service.dart';
 
 class CollegeDashboardScreen extends StatefulWidget {
@@ -57,7 +56,7 @@ class _CollegeDashboardScreenState extends State<CollegeDashboardScreen> {
       final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
       _notificationSubscription = notificationProvider.newNotificationStream.listen((notification) {
         if (mounted) {
-          if (html.Notification.permission != 'granted') {
+          if (!NotificationService.isSystemNotificationEnabled) {
             _showNotificationSnackBar(notification.title, notification.message);
           }
         }

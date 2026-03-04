@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supreme_institution/models/employee.dart';
@@ -40,7 +39,7 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
       final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
       _notificationSubscription = notificationProvider.newNotificationStream.listen((notification) {
         if (mounted) {
-          if (html.Notification.permission != 'granted') {
+          if (!NotificationService.isSystemNotificationEnabled) {
             _showNotificationSnackBar(notification.title, notification.message);
           }
         }

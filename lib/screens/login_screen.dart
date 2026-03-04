@@ -6,7 +6,6 @@ import '../providers/college_provider.dart';
 import '../providers/employee_provider.dart';
 import '../services/auth_storage_service.dart';
 import '../services/notification_service.dart';
-import 'dart:html' as html;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -526,36 +525,29 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                             const SizedBox(height: 16),
-                            // Web-specific notification permission button
-                            FutureBuilder<String>(
-                              future: Future.value(html.Notification.permission),
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData && snapshot.data != 'granted' && html.Notification.supported) {
-                                  return TextButton.icon(
-                                    onPressed: () async {
-                                      final granted = await NotificationService.requestPermission();
-                                      if (granted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Notifications enabled!')),
-                                        );
-                                        setState(() {}); // Refresh to hide button
-                                      } else {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Notification permission denied.')),
-                                        );
-                                      }
-                                    },
-                                    icon: const Icon(Icons.notifications_active, size: 18),
-                                    label: const Text('Enable System Notifications'),
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: Colors.grey.shade700,
-                                      padding: const EdgeInsets.symmetric(vertical: 8),
-                                    ),
-                                  );
-                                }
-                                return const SizedBox.shrink();
-                              },
-                            ),
+                            // System notification permission button
+                            if (NotificationService.isSystemNotificationSupported && !NotificationService.isSystemNotificationEnabled)
+                              TextButton.icon(
+                                onPressed: () async {
+                                  final granted = await NotificationService.requestPermission();
+                                  if (granted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Notifications enabled!')),
+                                    );
+                                    setState(() {}); // Refresh to hide button
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Notification permission denied.')),
+                                    );
+                                  }
+                                },
+                                icon: const Icon(Icons.notifications_active, size: 18),
+                                label: const Text('Enable System Notifications'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.grey.shade700,
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                              ),
                           ],
                         ),
                       ),
