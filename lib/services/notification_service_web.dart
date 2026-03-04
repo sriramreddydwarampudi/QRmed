@@ -15,6 +15,12 @@ class NotificationService {
     }
   }
 
+  static Future<bool> requestPermission() async {
+    if (!html.Notification.supported) return false;
+    final result = await html.Notification.requestPermission();
+    return result == 'granted';
+  }
+
   static Future<void> showSystemNotification({
     required int id,
     required String title,

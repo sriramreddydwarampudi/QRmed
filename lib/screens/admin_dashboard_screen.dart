@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supreme_institution/providers/notification_provider.dart';
@@ -31,7 +32,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
       _notificationSubscription = notificationProvider.newNotificationStream.listen((notification) {
         if (mounted) {
-          _showNotificationSnackBar(notification.title, notification.message);
+          // On web, if notification permission is granted, NotificationService.showSystemNotification
+          // will handle the system tray notification. We only show the snackbar as a fallback.
+          if (html.Notification.permission != 'granted') {
+            _showNotificationSnackBar(notification.title, notification.message);
+          }
         }
       });
     });
